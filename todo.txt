@@ -1,0 +1,40 @@
+# TODO
+- Passer en subtree git
+	=> Non plutôt des symlink, plus rapide et pratique je pense
+	=> Pour le déploiement, il faudra revoir le symlink pour qu'il puisse correspondre à l'environnement de dev et à la prod
+		=> Peut-être faudra-t-il le mettre dans le .gitignore et le rajouter à la main sur le serveur
+- Pour les configuration => automatiquement rajouter le prefix du module ce qui évite d'avoir à le mettre soit même
+- Gérer le getContent autrement, via peut-être la création de AdminController ?
+- Etudier comment Laravel gère les variables de ses formulaires et s'il faut tout passer à la vue ou si c'est géré autrement avec un Form::generate ou autre par exemple ?
+- Etudier si on ne peut pas utiliser Response::json, Response::download etc. pour faire des réponses HTTP spécifiques.
+- Simplifier le Tools::getValue($nom, $valeur_default) en Input::get
+- Ajouter Input::only, Input::except
+- Pas mal d'avoir ça aussi : Input::get('products.0.name');
+- Etudier si on a besoin de travailler avec les cookies quelle méthode est intéressante
+- Input::flash est très intéressant
+- Input::file est aussi très intéressant
+- Etudier la gestion d'erreur dans PrestaShop
+- Etuider IoC container et Facade et voir si c'est utile pour PrestaUtils
+- Truc de ouf Form::model, donne envie d'utiliser leur modèle et leur SQL Helper
+- Rajouter les helpers, ils sont vraiment cool !!
+- Pouvoir utiliser PrestaUtils pour plusieurs modules en même temps
+	=> Problème avec la variable module
+- Attention laravel utilise une fonction e() pour nettoyer tout code entrant.
+- Attention a bien traduire tout ce qui doit être traduit aussi
+- Utiliser le système de validation de formulaire de Laravel
+- Comprendre vraiment ce que génère le helper avec la toolbar, le token, l'action etc.
+- Définir le nom en fonction du dossier du module, si pas de fichiers trouvés, afficher une erreur.
+- Ajouter automatiquement JS et CSS
+	=> Le faire à l'install si on détecte des css et des js
+	=> Comment faire si la personne rajoute des CSS et des JS pendant le développement ?
+		=> Forcer à réinstaller ?
+- Bien se renseigner sur les controller
+- Trouver un système plus abouti que getContent pour gérer les submit en mode admin
+	- Pouvoir créer un controller avec des fonction getToto, postToto qui sont automatiquement gérées par l'outil
+	- Avoir des beforeFilter etc.
+- Trouver un système plus abouti pour gérer l'ajax et les controller que de créer un fichier par point d'entrée
+	=> Eviter d'avoir à créer des Ajax Link...
+- Mettre le code sur github et frama.git
+- Développer Smartier : un langage de template au dessus de SMARTY (un peu comme SASS) qui :
+	- Convertit l'Toto' en {capture name='my_module_tempvar'}{l s='World' mod='mymodule'}{/capture}  {assign var='my_module_name' value=$smarty.capture.my_module_tempvar} ? => Moche mais ça serait efficace...
+	- Permet de passer des tableaux dans du code genre Form::input(['toto'=>'tata'])

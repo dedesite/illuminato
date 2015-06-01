@@ -1,0 +1,15 @@
+{
+	"name": "andreas/prestashop",
+	"description": "Prestashop with composer and Laravel components",
+    "require": {
+        "illuminate/database": "5.*",
+        "illuminate/html": "5.*",
+        "illuminate/routing": "5.*",
+        "illuminate/view": "5.*",
+        "illuminate/events": "5.*",
+        "illuminate/session": "5.*",
+        "illuminate/filesystem": "5.*",
+        "illuminate/validation": "5.*",
+        "illuminate/translation": "5.*"
+    }
+}
