@@ -10,6 +10,17 @@
         "illuminate/session": "5.*",
         "illuminate/filesystem": "5.*",
         "illuminate/validation": "5.*",
-        "illuminate/translation": "5.*"
+        "illuminate/translation": "5.*",
+        "illuminate/config": "5.*",
+        "illuminate/log": "5.*",
+        "symfony/var-dumper": "2.6.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Illuminato\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     }
 }

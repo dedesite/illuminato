@@ -1,4 +1,36 @@
 # TODO
+- Trouver une solution pour ne pas avoir a modifier Module.php et le eval code.
+	=> Peut-être ne pas utiliser use dans le code du module et charger le reste via l'autoload
+		=> Comment faire pour autoload les fichiers qui ne sont pas dans illuminato ?
+- Trouver des solutions plus sexy pour la requete ajax de la pagination des commentaires dans le panel admin
+- Comment faire en sorte que les Eloquant Model fonctionnent avec ObjectModel list view ?
+	=> Récréer une List View pour Eloquant ?
+	=> Ajouter un ObjectModel automatiquement dans le Model Eloquent ?
+- L'installation/désinstallation de Tab dans le panel d'admin ne devrait pas se faire dans le install du module ?
+- Automatiquement register au hookRoute ou alors ne pas passer du tout par les routes PrestaShop qui ont l'air bien pourrie (besoin de créer un tableau)... voir commment faire autrement.
+- Comment gérer les roots qui peuvent avoir 2 écriture (friendly et normal ?)
+	=> Pas besoin le routeHook est appeler que dans du friendlyUrl normalement, à vérifier.
+- Est-ce que l'on doit setter une APP_KEY ou utiliser celle de PrestaShop (y en a-t-il une ?)
+- Trouver un moyen de faire des Link plus sympa que ça !!!
+<div class="rte">
+  {assign var=params value=[
+    'module_action' => 'list',
+    'id_product'=> $smarty.get.id_product
+  ]}
+  <a href="{$link->getModuleLink('mymodcomments', 'comments', $params)}">
+    {l s='See all comments' mod='mymodcomments'}
+  </a>
+</div>
+- Trouver un système plus sympa pour les controllers pour gérer les actions que le initContent
+	=> On devrait pouvoir automatiquement gérer plusieurs actions dans un controller sans souci
+- Dans les controller, appeler aussi automatiquement setMedia avec les bons CSS et JS
+	=> Peut-être fournir une config ?
+- A la place des noms de classes à ralonge utiliser les namespaces.
+- Utiliser la fonction pagination de Laravel
+- Automatiquement rajouter le hookModuleRoutes au module si on veut gérer les friendly URL sur un controller
+	=> Pouvoir utiliser les routes de Laravel ?
+- Utiliser Eloquent à la place de ObjectModel
+- Utiliser les Form Helper de Laravel
 - Passer en subtree git
 	=> Non plutôt des symlink, plus rapide et pratique je pense
 	=> Pour le déploiement, il faudra revoir le symlink pour qu'il puisse correspondre à l'environnement de dev et à la prod

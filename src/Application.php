@@ -1,0 +1,682 @@
+<?php namespace Illuminato;
+
+use Illuminate\Container\Container;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Events\EventServiceProvider;
+use Illuminate\Routing\RoutingServiceProvider;
+use Illuminate\Translation\TranslationServiceProvider;
+use Illuminate\Contracts\Foundation\Application as ApplicationContract;
+
+/**
+ * In order to use Illuminate API, we need a Container
+ */
+class Application extends Container implements ApplicationContract{
+	/**
+	 * The IlluminatoShop framework version.
+	 *
+	 * @var string
+	 */
+	const VERSION = '0.0.1';
+
+	/**
+	 * The base path for the Laravel installation.
+	 *
+	 * @var string
+	 */
+	protected $basePath;
+
+	/**
+	 * Indicates if the application has been bootstrapped before.
+	 *
+	 * @var bool
+	 */
+	protected $hasBeenBootstrapped = false;
+
+	/**
+	 * The custom database path defined by the developer.
+	 *
+	 * @var string
+	 */
+	protected $databasePath;
+
+	/**
+	 * The custom storage path defined by the developer.
+	 *
+	 * @var string
+	 */
+	protected $storagePath;
+
+	/**
+	 * Indicates if the storage directory should be used for optimizations.
+	 *
+	 * @var bool
+	 */
+	protected $useStoragePathForOptimizations = false;
+
+	/**
+	 * Indicates if the application has "booted".
+	 *
+	 * @var bool
+	 */
+	protected $booted = false;
+
+	/**
+	 * All of the registered service providers.
+	 *
+	 * @var array
+	 */
+	protected $serviceProviders = array();
+
+	/**
+	 * The names of the loaded service providers.
+	 *
+	 * @var array
+	 */
+	protected $loadedProviders = array();
+
+	/**
+	 * The deferred services and their providers.
+	 *
+	 * @var array
+	 */
+	protected $deferredServices = array();
+
+	/**
+	 * Create a new Illuminate application instance.
+	 *
+	 * @param  string|null  $basePath
+	 * @return void
+	 */
+	public function __construct($basePath = null)
+	{
+		//Set local from Prestashop context
+		//TODO : local should probably be loaded from config
+		//$context = \Context::getContext();
+		//$this->setLocale($context->language->iso_code);
+
+		$this->registerBaseBindings();
+
+		$this->registerBaseServiceProviders();
+
+		$this->registerCoreContainerAliases();
+
+		if ($basePath) $this->setBasePath($basePath);
+	}
+
+	/**
+	 * Get the version number of the application.
+	 *
+	 * @return string
+	 */
+	public function version()
+	{
+		return static::VERSION;
+	}
+
+	/**
+	 * Get or check the current application environment.
+	 *
+	 * @param  mixed
+	 * @return string
+	 */
+	public function environment()
+	{
+		if (func_num_args() > 0)
+		{
+			$patterns = is_array(func_get_arg(0)) ? func_get_arg(0) : func_get_args();
+
+			foreach ($patterns as $pattern)
+			{
+				if (str_is($pattern, $this['env']))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+		return $this['env'];
+	}
+
+	/**
+	 * Determine if application is in local environment.
+	 *
+	 * @return bool
+	 */
+	public function isLocal()
+	{
+		return $this['env'] == 'local';
+	}
+
+	/**
+	 * Detect the application's current environment.
+	 *
+	 * @param  \Closure  $callback
+	 * @return string
+	 */
+	public function detectEnvironment(\Closure $callback)
+	{
+		$args = isset($_SERVER['argv']) ? $_SERVER['argv'] : null;
+
+		return $this['env'] = (new EnvironmentDetector())->detect($callback, $args);
+	}
+
+	/**
+	 * Get the path to the cached "compiled.php" file.
+	 *
+	 * @return string
+	 */
+	public function getCachedCompilePath()
+	{
+		if ($this->vendorIsWritableForOptimizations())
+		{
+			return $this->basePath().'/vendor/compiled.php';
+		}
+		else
+		{
+			return $this->storagePath().'/framework/compiled.php';
+		}
+	}
+
+	/**
+	 * Get the path to the cached services.json file.
+	 *
+	 * @return string
+	 */
+	public function getCachedServicesPath()
+	{
+		if ($this->vendorIsWritableForOptimizations())
+		{
+			return $this->basePath().'/vendor/services.json';
+		}
+		else
+		{
+			return $this->storagePath().'/framework/services.json';
+		}
+	}
+
+	/**
+	 * Determine if vendor path is writable.
+	 *
+	 * @return bool
+	 */
+	public function vendorIsWritableForOptimizations()
+	{
+		if ($this->useStoragePathForOptimizations) return false;
+
+		return is_writable($this->basePath().'/vendor');
+	}
+
+	/**
+	 * Determines if storage directory should be used for optimizations.
+	 *
+	 * @param  bool  $value
+	 * @return $this
+	 */
+	public function useStoragePathForOptimizations($value = true)
+	{
+		$this->useStoragePathForOptimizations = $value;
+
+		return $this;
+	}
+
+
+	/**
+	 * Call the booting callbacks for the application.
+	 *
+	 * @param  array  $callbacks
+	 * @return void
+	 */
+	protected function fireAppCallbacks(array $callbacks)
+	{
+		foreach ($callbacks as $callback)
+		{
+			call_user_func($callback, $this);
+		}
+	}
+
+	/**
+	 * Determine if the application is currently down for maintenance.
+	 *
+	 * @return bool
+	 */
+	public function isDownForMaintenance()
+	{
+		return false;
+	}
+
+	/**
+	 * Set the application's deferred services.
+	 *
+	 * @param  array  $services
+	 * @return void
+	 */
+	public function setDeferredServices(array $services)
+	{
+		$this->deferredServices = $services;
+	}
+
+	/**
+	 * Register the basic bindings into the container.
+	 *
+	 * @return void
+	 */
+	protected function registerBaseBindings()
+	{
+		static::setInstance($this);
+
+		$this->instance('app', $this);
+
+		$this->instance('Illuminate\Container\Container', $this);
+	}
+
+	/**
+	 * Register all of the base service providers.
+	 *
+	 * @return void
+	 */
+	protected function registerBaseServiceProviders()
+	{
+		$this->register(new EventServiceProvider($this));
+
+		$this->register(new RoutingServiceProvider($this));
+
+		$this->register(new TranslationServiceProvider($this));
+	}
+
+	/**
+	 * Run the given array of bootstrap classes.
+	 *
+	 * @param  array  $bootstrappers
+	 * @return void
+	 */
+	public function bootstrapWith(array $bootstrappers)
+	{
+		$this->hasBeenBootstrapped = true;
+
+		foreach ($bootstrappers as $bootstrapper)
+		{
+			$this['events']->fire('bootstrapping: '.$bootstrapper, [$this]);
+
+			$this->make($bootstrapper)->bootstrap($this);
+
+			$this['events']->fire('bootstrapped: '.$bootstrapper, [$this]);
+		}
+	}
+
+	/**
+	 * Register all of the configured providers.
+	 *
+	 * @return void
+	 */
+	public function registerConfiguredProviders()
+	{
+		$manifestPath = $this->getCachedServicesPath();
+		
+		(new ProviderRepository($this, new Filesystem, $manifestPath))
+					->load($this->config['app.providers']);
+	}
+
+	/**
+	 * Register a deferred provider and service.
+	 *
+	 * @param  string  $provider
+	 * @param  string  $service
+	 * @return void
+	 */
+	public function registerDeferredProvider($provider, $service = null)
+	{
+		// Once the provider that provides the deferred service has been registered we
+		// will remove it from our local list of the deferred services with related
+		// providers so that this container does not try to resolve it out again.
+		/*if ($service) unset($this->deferredServices[$service]);
+
+		$this->register($instance = new $provider($this));
+
+		if ( ! $this->booted)
+		{
+			$this->booting(function() use ($instance)
+			{
+				$this->bootProvider($instance);
+			});
+		}*/
+	}
+
+	/**
+	 * Determine if the application has booted.
+	 *
+	 * @return bool
+	 */
+	public function isBooted()
+	{
+		return $this->booted;
+	}
+
+	/**
+	 * Boot the application's service providers.
+	 *
+	 * @return void
+	 */
+	public function boot()
+	{
+		if ($this->booted) return;
+
+		// Once the application has booted we will also fire some "booted" callbacks
+		// for any listeners that need to do work after this initial booting gets
+		// finished. This is useful when ordering the boot-up processes we run.
+		$this->fireAppCallbacks($this->bootingCallbacks);
+
+		array_walk($this->serviceProviders, function($p) {
+			$this->bootProvider($p);
+		});
+
+		$this->booted = true;
+
+		$this->fireAppCallbacks($this->bootedCallbacks);
+	}
+
+	/**
+	 * Boot the given service provider.
+	 *
+	 * @param  \Illuminate\Support\ServiceProvider  $provider
+	 * @return void
+	 */
+	protected function bootProvider(ServiceProvider $provider)
+	{
+		if (method_exists($provider, 'boot'))
+		{
+			return $this->call([$provider, 'boot']);
+		}
+	}
+
+	/**
+	 * Register a new boot listener.
+	 *
+	 * @param  mixed  $callback
+	 * @return void
+	 */
+	public function booting($callback)
+	{
+		$this->bootingCallbacks[] = $callback;
+	}
+
+	/**
+	 * Register a new "booted" listener.
+	 *
+	 * @param  mixed  $callback
+	 * @return void
+	 */
+	public function booted($callback)
+	{
+		$this->bootedCallbacks[] = $callback;
+
+		if ($this->isBooted()) $this->fireAppCallbacks(array($callback));
+	}
+
+	/**
+	 * Determine if the application has been bootstrapped before.
+	 *
+	 * @return bool
+	 */
+	public function hasBeenBootstrapped()
+	{
+		return $this->hasBeenBootstrapped;
+	}
+
+	/**
+	 * Set the base path for the application.
+	 *
+	 * @param  string  $basePath
+	 * @return $this
+	 */
+	public function setBasePath($basePath)
+	{
+		$this->basePath = $basePath;
+
+		$this->bindPathsInContainer();
+
+		return $this;
+	}
+
+	/**
+	 * Bind all of the application paths in the container.
+	 *
+	 * @return void
+	 */
+	protected function bindPathsInContainer()
+	{
+		$this->instance('path', $this->path());
+
+		foreach (['base', 'config', 'database', 'lang', 'public', 'storage'] as $path)
+		{
+			$this->instance('path.'.$path, $this->{$path.'Path'}());
+		}
+	}
+
+	/**
+	 * Get the path to the application "app" directory.
+	 *
+	 * @return string
+	 */
+	public function path()
+	{
+		return $this->basePath.DIRECTORY_SEPARATOR.'app';
+	}
+
+	/**
+	 * Get the base path of the Laravel installation.
+	 *
+	 * @return string
+	 */
+	public function basePath()
+	{
+		return $this->basePath;
+	}
+
+	/**
+	 * Get the path to the application configuration files.
+	 *
+	 * @return string
+	 */
+	public function configPath()
+	{
+		return $this->basePath.DIRECTORY_SEPARATOR.'config';
+	}
+
+	/**
+	 * Get the path to the database directory.
+	 *
+	 * @return string
+	 */
+	public function databasePath()
+	{
+		return $this->databasePath ?: $this->basePath.DIRECTORY_SEPARATOR.'database';
+	}
+
+	/**
+	 * Get the path to the language files.
+	 *
+	 * @return string
+	 */
+	public function langPath()
+	{
+		return $this->basePath.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'lang';
+	}
+
+	/**
+	 * Get the path to the public / web directory.
+	 *
+	 * @return string
+	 */
+	public function publicPath()
+	{
+		return $this->basePath.DIRECTORY_SEPARATOR.'public';
+	}
+
+	/**
+	 * Get the path to the storage directory.
+	 *
+	 * @return string
+	 */
+	public function storagePath()
+	{
+		return $this->storagePath ?: $this->basePath.DIRECTORY_SEPARATOR.'storage';
+	}
+
+
+	/**
+	 * Register a service provider with the application.
+	 *
+	 * @param  \Illuminate\Support\ServiceProvider|string  $provider
+	 * @param  array  $options
+	 * @param  bool   $force
+	 * @return \Illuminate\Support\ServiceProvider
+	 */
+	public function register($provider, $options = array(), $force = false)
+	{
+		if ($registered = $this->getProvider($provider) && ! $force)
+		{
+			return $registered;
+		}
+
+		// If the given "provider" is a string, we will resolve it, passing in the
+		// application instance automatically for the developer. This is simply
+		// a more convenient way of specifying your service provider classes.
+		if (is_string($provider))
+		{
+			$provider = $this->resolveProviderClass($provider);
+		}
+
+		$provider->register();
+
+		// Once we have registered the service we will iterate through the options
+		// and set each of them on the application so they will be available on
+		// the actual loading of the service objects and for developer usage.
+		foreach ($options as $key => $value)
+		{
+			$this[$key] = $value;
+		}
+
+		$this->markAsRegistered($provider);
+
+		// If the application has already booted, we will call this boot method on
+		// the provider class so it has an opportunity to do its boot logic and
+		// will be ready for any usage by the developer's application logics.
+		if ($this->booted)
+		{
+			$this->bootProvider($provider);
+		}
+
+		return $provider;
+	}
+
+	/**
+	 * Get the registered service provider instance if it exists.
+	 *
+	 * @param  \Illuminate\Support\ServiceProvider|string  $provider
+	 * @return \Illuminate\Support\ServiceProvider|null
+	 */
+	public function getProvider($provider)
+	{
+		$name = is_string($provider) ? $provider : get_class($provider);
+
+		return array_first($this->serviceProviders, function($key, $value) use ($name)
+		{
+			return $value instanceof $name;
+		});
+	}
+
+	/**
+	 * Resolve a service provider instance from the class name.
+	 *
+	 * @param  string  $provider
+	 * @return \Illuminate\Support\ServiceProvider
+	 */
+	public function resolveProviderClass($provider)
+	{
+		return new $provider($this);
+	}
+
+	/**
+	 * Mark the given provider as registered.
+	 *
+	 * @param  \Illuminate\Support\ServiceProvider
+	 * @return void
+	 */
+	protected function markAsRegistered($provider)
+	{
+		$this['events']->fire($class = get_class($provider), array($provider));
+
+		$this->serviceProviders[] = $provider;
+
+		$this->loadedProviders[$class] = true;
+	}
+
+	/**
+	 * Set the current application locale.
+	 *
+	 * @param  string  $locale
+	 * @return void
+	 */
+	public function setLocale($locale)
+	{
+		$this['config']->set('app.locale', $locale);
+
+		$this['translator']->setLocale($locale);
+	}
+
+	/**
+	 * Register the core class aliases in the container.
+	 *
+	 * @return void
+	 */
+	public function registerCoreContainerAliases()
+	{
+		$aliases = array(
+			'app'                  => ['Illuminato\Application', 'Illuminate\Contracts\Container\Container', 'Illuminate\Contracts\Foundation\Application'],
+			'validator'            => ['Illuminate\Validation\Factory', 'Illuminate\Contracts\Validation\Factory'],
+			'events'               => ['Illuminate\Events\Dispatcher', 'Illuminate\Contracts\Events\Dispatcher'],
+			'log'                  => ['Illuminate\Log\Writer', 'Illuminate\Contracts\Logging\Log', 'Psr\Log\LoggerInterface'],
+			/*'artisan'              => ['Illuminate\Console\Application', 'Illuminate\Contracts\Console\Application'],
+			'auth'                 => 'Illuminate\Auth\AuthManager',
+			'auth.driver'          => ['Illuminate\Auth\Guard', 'Illuminate\Contracts\Auth\Guard'],
+			'auth.password.tokens' => 'Illuminate\Auth\Passwords\TokenRepositoryInterface',
+			'blade.compiler'       => 'Illuminate\View\Compilers\BladeCompiler',
+			'cache'                => ['Illuminate\Cache\CacheManager', 'Illuminate\Contracts\Cache\Factory'],
+			'cache.store'          => ['Illuminate\Cache\Repository', 'Illuminate\Contracts\Cache\Repository'],
+			'config'               => ['Illuminate\Config\Repository', 'Illuminate\Contracts\Config\Repository'],
+			'cookie'               => ['Illuminate\Cookie\CookieJar', 'Illuminate\Contracts\Cookie\Factory', 'Illuminate\Contracts\Cookie\QueueingFactory'],
+			'encrypter'            => ['Illuminate\Encryption\Encrypter', 'Illuminate\Contracts\Encryption\Encrypter'],
+			'db'                   => 'Illuminate\Database\DatabaseManager',
+			'files'                => 'Illuminate\Filesystem\Filesystem',
+			'filesystem'           => ['Illuminate\Filesystem\FilesystemManager', 'Illuminate\Contracts\Filesystem\Factory'],
+			'filesystem.disk'      => 'Illuminate\Contracts\Filesystem\Filesystem',
+			'filesystem.cloud'     => 'Illuminate\Contracts\Filesystem\Cloud',
+			'hash'                 => 'Illuminate\Contracts\Hashing\Hasher',
+			'translator'           => ['Illuminate\Translation\Translator', 'Symfony\Component\Translation\TranslatorInterface'],
+			'log'                  => ['Illuminate\Log\Writer', 'Illuminate\Contracts\Logging\Log', 'Psr\Log\LoggerInterface'],
+			'mailer'               => ['Illuminate\Mail\Mailer', 'Illuminate\Contracts\Mail\Mailer', 'Illuminate\Contracts\Mail\MailQueue'],
+			'paginator'            => 'Illuminate\Pagination\Factory',
+			'auth.password'        => ['Illuminate\Auth\Passwords\PasswordBroker', 'Illuminate\Contracts\Auth\PasswordBroker'],
+			'queue'                => ['Illuminate\Queue\QueueManager', 'Illuminate\Contracts\Queue\Factory', 'Illuminate\Contracts\Queue\Monitor'],
+			'queue.connection'     => 'Illuminate\Contracts\Queue\Queue',
+			'redirect'             => 'Illuminate\Routing\Redirector',
+			'redis'                => ['Illuminate\Redis\Database', 'Illuminate\Contracts\Redis\Database'],
+			'request'              => 'Illuminate\Http\Request',
+			'router'               => ['Illuminate\Routing\Router', 'Illuminate\Contracts\Routing\Registrar'],
+			'session'              => 'Illuminate\Session\SessionManager',
+			'session.store'        => ['Illuminate\Session\Store', 'Symfony\Component\HttpFoundation\Session\SessionInterface'],
+			'url'                  => ['Illuminate\Routing\UrlGenerator', 'Illuminate\Contracts\Routing\UrlGenerator'],
+			
+			'view'                 => ['Illuminate\View\Factory', 'Illuminate\Contracts\View\Factory'],*/
+		);
+
+		foreach ($aliases as $key => $aliases)
+		{
+			foreach ((array) $aliases as $alias)
+			{
+				$this->alias($key, $alias);
+			}
+		}
+	}
+}

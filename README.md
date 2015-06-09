@@ -1,8 +1,41 @@
-# Introduction
+IlluminatoShop
+==============
 
 IlluminatoShop is a set of tools that allows Prestashop Module developpers to use Laravel 5 API inside PrestaShop.
 
 For now, it is a nasty hack, maybe it will evolve into something cleaner.
+
+# History
+
+I found myself trying to write a PrestaShop module which uses the Prestashop's FormHelper class and complaining a lot about it. In fact, it was such a complexe tool to use that my code was more complex and long than a plain old Html form, plus you can only use it for simple cases. I found that the FormHelper is not able to generate the forms I needed so I went back to Html forms.
+
+After recreating all my forms in Html, I remeber that Laravel had such a great Helper for forms that I decided to mimic it's API and borrow from it's code. It was cool and my form code got really easy to understand and very short comparing the two previous methods.
+
+Then, I just realize I could maybe use all the Laravel's Tools (input validation, routes, Query Builder, Eloquent, Migration, Queue etc.) and I got deep into it ! Hacking, reading (espacially Fabien Serny's Book on Prestashop module developpment which was an unvaluable ressource for the Prestashop beginner I was) and trying to find a way to get the best of the two worlds (honnestly the best is mostly on Laravel sides) without breaking compatibilities with PrestaShop important feature (automatic upgrades, admin object model list, friendly url, localization interface etc.).
+
+# Disclaimer
+
+Yes, IlluminatoShop do not respects PrestaShop guidings and coding standard since it tends to mimic a Laravel application behaviour, it respects as much as possible Laravels guidings.
+
+Yes, it uses namespace and composer so it needs PHP 5.4 at least so don't expect it to be able on the official addons store.
+
+# Installation
+
+Since IlluminatoShop uses namespace and also the `use` keyword, you need to remove the `eval` code in `classes/module/Module.php` in `getModulesOnDisk` function.
+
+Old code (line 1242 in Prestashop 1.6.14) :
+```
+if (eval('if (false){	'.$file.' }') !== false)
+	require_once( _PS_MODULE_DIR_.$module.'/'.$module.'.php' );
+else
+	$errors[] = sprintf(Tools::displayError('%1$s (parse error in %2$s)'), $module, substr($filepath, strlen(_PS_ROOT_DIR_)));
+
+```
+
+New code :
+```
+require_once( _PS_MODULE_DIR_.$module.'/'.$module.'.php' );
+```
 
 # Create a module
 
