@@ -13,11 +13,14 @@
         "illuminate/translation": "5.*",
         "illuminate/config": "5.*",
         "illuminate/log": "5.*",
+        "illuminate/console": "5.*",
         "symfony/var-dumper": "2.6.*"
     },
     "autoload": {
         "psr-4": {
-            "Illuminato\\": "src/"
+            "Illuminato\\": "src/",
+            "Illuminate\\Foundation\\": "src/Foundation/",
+            "Illuminate\\Foundation\\Providers\\": "src/Foundation/Providers/"
         },
         "files": [
             "src/helpers.php"

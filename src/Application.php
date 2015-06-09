@@ -61,6 +61,20 @@ class Application extends Container implements ApplicationContract{
 	protected $booted = false;
 
 	/**
+	 * The array of booting callbacks.
+	 *
+	 * @var array
+	 */
+	protected $bootingCallbacks = array();
+
+	/**
+	 * The array of booted callbacks.
+	 *
+	 * @var array
+	 */
+	protected $bootedCallbacks = array();
+
+	/**
 	 * All of the registered service providers.
 	 *
 	 * @var array
@@ -339,7 +353,7 @@ class Application extends Container implements ApplicationContract{
 		// Once the provider that provides the deferred service has been registered we
 		// will remove it from our local list of the deferred services with related
 		// providers so that this container does not try to resolve it out again.
-		/*if ($service) unset($this->deferredServices[$service]);
+		if ($service) unset($this->deferredServices[$service]);
 
 		$this->register($instance = new $provider($this));
 
@@ -349,7 +363,50 @@ class Application extends Container implements ApplicationContract{
 			{
 				$this->bootProvider($instance);
 			});
-		}*/
+		}
+	}
+
+
+	/**
+	 * Load and boot all of the remaining deferred providers.
+	 *
+	 * @return void
+	 */
+	public function loadDeferredProviders()
+	{
+		// We will simply spin through each of the deferred providers and register each
+		// one and boot them if the application has booted. This should make each of
+		// the remaining services available to this application for immediate use.
+		foreach ($this->deferredServices as $service => $provider)
+		{
+			$this->loadDeferredProvider($service);
+		}
+
+		$this->deferredServices = array();
+	}
+
+	/**
+	 * Load the provider for a deferred service.
+	 *
+	 * @param  string  $service
+	 * @return void
+	 */
+	public function loadDeferredProvider($service)
+	{
+		if ( ! isset($this->deferredServices[$service]))
+		{
+			return;
+		}
+
+		$provider = $this->deferredServices[$service];
+
+		// If the service provider has not already been loaded and registered we can
+		// register it with the application and remove the service from this list
+		// of deferred services, since it will already be loaded on subsequent.
+		if ( ! isset($this->loadedProviders[$provider]))
+		{
+			$this->registerDeferredProvider($provider, $service);
+		}
 	}
 
 	/**
@@ -647,8 +704,8 @@ class Application extends Container implements ApplicationContract{
 			'validator'            => ['Illuminate\Validation\Factory', 'Illuminate\Contracts\Validation\Factory'],
 			'events'               => ['Illuminate\Events\Dispatcher', 'Illuminate\Contracts\Events\Dispatcher'],
 			'log'                  => ['Illuminate\Log\Writer', 'Illuminate\Contracts\Logging\Log', 'Psr\Log\LoggerInterface'],
-			/*'artisan'              => ['Illuminate\Console\Application', 'Illuminate\Contracts\Console\Application'],
-			'auth'                 => 'Illuminate\Auth\AuthManager',
+			'artisan'              => ['Illuminate\Console\Application', 'Illuminate\Contracts\Console\Application'],
+			/*'auth'                 => 'Illuminate\Auth\AuthManager',
 			'auth.driver'          => ['Illuminate\Auth\Guard', 'Illuminate\Contracts\Auth\Guard'],
 			'auth.password.tokens' => 'Illuminate\Auth\Passwords\TokenRepositoryInterface',
 			'blade.compiler'       => 'Illuminate\View\Compilers\BladeCompiler',

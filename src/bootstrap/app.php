@@ -31,11 +31,11 @@ $app->singleton(
 	'Illuminato\Kernel'
 );
 
-/*$app->singleton(
+$app->singleton(
 	'Illuminate\Contracts\Console\Kernel',
-	'App\Console\Kernel'
+	'Illuminate\Foundation\Console\Kernel'
 );
-*/
+
 $app->singleton(
 	'Illuminate\Contracts\Debug\ExceptionHandler',
 	'Illuminato\Handler'
