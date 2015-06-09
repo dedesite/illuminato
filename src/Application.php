@@ -162,6 +162,16 @@ class Application extends Container implements ApplicationContract{
 	}
 
 	/**
+	 * Determine if we are running in the console.
+	 *
+	 * @return bool
+	 */
+	public function runningInConsole()
+	{
+		return php_sapi_name() == 'cli';
+	}
+
+	/**
 	 * Get the path to the cached "compiled.php" file.
 	 *
 	 * @return string

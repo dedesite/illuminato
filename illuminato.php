@@ -24,8 +24,10 @@ require __DIR__.'/src/bootstrap/autoload.php';
 | the responses back to the browser and delight our users.
 |
 */
-
 $app = require_once __DIR__.'/src/bootstrap/app.php';
+
+// Don't know why yet but this file isn't loaded with autoload...
+require_once __DIR__.'/src/Module.php';
 
 class Illuminato extends Module {
 	public function __construct() {
