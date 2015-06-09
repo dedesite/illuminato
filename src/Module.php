@@ -7,7 +7,7 @@ use App;
 /**
  * Class that simplify module creation and which module can derivate from
  */
-class IllModule extends \Module {
+class Module extends \Module {
 	public function __construct() {
 		$this->checkName();
 		//Illuminato module need to be install before installing this one
@@ -30,19 +30,13 @@ class IllModule extends \Module {
 	}
 
 	protected function checkName() {
-		$trace = debug_backtrace()[1];
-		//Retrieve the file informations
-		//To check if the module filename and directory are the same
-		if(isset($trace['file'])){
-			$dir = strtolower(dirname($trace['file']));
-			$dir = last(explode('/', $dir));
-			$base = strtolower(basename($trace['file'], '.php'));
-			if($dir == $base){
-				$this->name = $base;
-			}
-			else {
-				dd('Error dirname and filename are not the same : '.$dir.' and '.$base);
-			}
+		$class_name = strtolower(get_class($this));
+		$dir = _PS_MODULE_DIR_.'/'.$class_name;
+		if(is_dir($dir) && is_file($dir.'/'.$class_name.'.php')) {
+			$this->name = $class_name;
+		}
+		else {
+			dd('Error directory or file not found with the name : '.$class_name);
 		}
 	}
 }
