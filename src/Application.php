@@ -2,9 +2,9 @@
 
 use Illuminate\Container\Container;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Events\EventServiceProvider;
 use Illuminate\Routing\RoutingServiceProvider;
-use Illuminate\Translation\TranslationServiceProvider;
 use Illuminate\Contracts\Foundation\Application as ApplicationContract;
 
 /**
@@ -31,27 +31,6 @@ class Application extends Container implements ApplicationContract{
 	 * @var bool
 	 */
 	protected $hasBeenBootstrapped = false;
-
-	/**
-	 * The custom database path defined by the developer.
-	 *
-	 * @var string
-	 */
-	protected $databasePath;
-
-	/**
-	 * The custom storage path defined by the developer.
-	 *
-	 * @var string
-	 */
-	protected $storagePath;
-
-	/**
-	 * Indicates if the storage directory should be used for optimizations.
-	 *
-	 * @var bool
-	 */
-	protected $useStoragePathForOptimizations = false;
 
 	/**
 	 * Indicates if the application has "booted".
@@ -96,6 +75,27 @@ class Application extends Container implements ApplicationContract{
 	protected $deferredServices = array();
 
 	/**
+	 * The custom database path defined by the developer.
+	 *
+	 * @var string
+	 */
+	protected $databasePath;
+
+	/**
+	 * The custom storage path defined by the developer.
+	 *
+	 * @var string
+	 */
+	protected $storagePath;
+
+	/**
+	 * Indicates if the storage directory should be used for optimizations.
+	 *
+	 * @var bool
+	 */
+	protected $useStoragePathForOptimizations = false;
+
+	/**
 	 * Create a new Illuminate application instance.
 	 *
 	 * @param  string|null  $basePath
@@ -128,159 +128,6 @@ class Application extends Container implements ApplicationContract{
 	}
 
 	/**
-	 * Get or check the current application environment.
-	 *
-	 * @param  mixed
-	 * @return string
-	 */
-	public function environment()
-	{
-		if (func_num_args() > 0)
-		{
-			$patterns = is_array(func_get_arg(0)) ? func_get_arg(0) : func_get_args();
-
-			foreach ($patterns as $pattern)
-			{
-				if (str_is($pattern, $this['env']))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-		return $this['env'];
-	}
-
-	/**
-	 * Determine if application is in local environment.
-	 *
-	 * @return bool
-	 */
-	public function isLocal()
-	{
-		return $this['env'] == 'local';
-	}
-
-	/**
-	 * Detect the application's current environment.
-	 *
-	 * @param  \Closure  $callback
-	 * @return string
-	 */
-	public function detectEnvironment(\Closure $callback)
-	{
-		$args = isset($_SERVER['argv']) ? $_SERVER['argv'] : null;
-
-		return $this['env'] = (new EnvironmentDetector())->detect($callback, $args);
-	}
-
-	/**
-	 * Determine if we are running in the console.
-	 *
-	 * @return bool
-	 */
-	public function runningInConsole()
-	{
-		return php_sapi_name() == 'cli';
-	}
-
-	/**
-	 * Get the path to the cached "compiled.php" file.
-	 *
-	 * @return string
-	 */
-	public function getCachedCompilePath()
-	{
-		if ($this->vendorIsWritableForOptimizations())
-		{
-			return $this->basePath().'/vendor/compiled.php';
-		}
-		else
-		{
-			return $this->storagePath().'/framework/compiled.php';
-		}
-	}
-
-	/**
-	 * Get the path to the cached services.json file.
-	 *
-	 * @return string
-	 */
-	public function getCachedServicesPath()
-	{
-		if ($this->vendorIsWritableForOptimizations())
-		{
-			return $this->basePath().'/vendor/services.json';
-		}
-		else
-		{
-			return $this->storagePath().'/framework/services.json';
-		}
-	}
-
-	/**
-	 * Determine if vendor path is writable.
-	 *
-	 * @return bool
-	 */
-	public function vendorIsWritableForOptimizations()
-	{
-		if ($this->useStoragePathForOptimizations) return false;
-
-		return is_writable($this->basePath().'/vendor');
-	}
-
-	/**
-	 * Determines if storage directory should be used for optimizations.
-	 *
-	 * @param  bool  $value
-	 * @return $this
-	 */
-	public function useStoragePathForOptimizations($value = true)
-	{
-		$this->useStoragePathForOptimizations = $value;
-
-		return $this;
-	}
-
-
-	/**
-	 * Call the booting callbacks for the application.
-	 *
-	 * @param  array  $callbacks
-	 * @return void
-	 */
-	protected function fireAppCallbacks(array $callbacks)
-	{
-		foreach ($callbacks as $callback)
-		{
-			call_user_func($callback, $this);
-		}
-	}
-
-	/**
-	 * Determine if the application is currently down for maintenance.
-	 *
-	 * @return bool
-	 */
-	public function isDownForMaintenance()
-	{
-		return false;
-	}
-
-	/**
-	 * Set the application's deferred services.
-	 *
-	 * @param  array  $services
-	 * @return void
-	 */
-	public function setDeferredServices(array $services)
-	{
-		$this->deferredServices = $services;
-	}
-
-	/**
 	 * Register the basic bindings into the container.
 	 *
 	 * @return void
@@ -304,8 +151,6 @@ class Application extends Container implements ApplicationContract{
 		$this->register(new EventServiceProvider($this));
 
 		$this->register(new RoutingServiceProvider($this));
-
-		$this->register(new TranslationServiceProvider($this));
 	}
 
 	/**
@@ -329,155 +174,40 @@ class Application extends Container implements ApplicationContract{
 	}
 
 	/**
-	 * Register all of the configured providers.
+	 * Register a callback to run after loading the environment.
 	 *
+	 * @param  \Closure  $callback
 	 * @return void
 	 */
-	public function registerConfiguredProviders()
+	public function afterLoadingEnvironment(Closure $callback)
 	{
-		$manifestPath = $this->getCachedServicesPath();
-		
-		(new ProviderRepository($this, new Filesystem, $manifestPath))
-					->load($this->config['app.providers']);
+		return $this->afterBootstrapping(
+			'Illuminate\Foundation\Bootstrap\DetectEnvironment', $callback
+		);
 	}
 
 	/**
-	 * Register a deferred provider and service.
+	 * Register a callback to run before a bootstrapper.
 	 *
-	 * @param  string  $provider
-	 * @param  string  $service
+	 * @param  string  $bootstrapper
+	 * @param  Closure  $callback
 	 * @return void
 	 */
-	public function registerDeferredProvider($provider, $service = null)
+	public function beforeBootstrapping($bootstrapper, Closure $callback)
 	{
-		// Once the provider that provides the deferred service has been registered we
-		// will remove it from our local list of the deferred services with related
-		// providers so that this container does not try to resolve it out again.
-		if ($service) unset($this->deferredServices[$service]);
-
-		$this->register($instance = new $provider($this));
-
-		if ( ! $this->booted)
-		{
-			$this->booting(function() use ($instance)
-			{
-				$this->bootProvider($instance);
-			});
-		}
-	}
-
-
-	/**
-	 * Load and boot all of the remaining deferred providers.
-	 *
-	 * @return void
-	 */
-	public function loadDeferredProviders()
-	{
-		// We will simply spin through each of the deferred providers and register each
-		// one and boot them if the application has booted. This should make each of
-		// the remaining services available to this application for immediate use.
-		foreach ($this->deferredServices as $service => $provider)
-		{
-			$this->loadDeferredProvider($service);
-		}
-
-		$this->deferredServices = array();
+		$this['events']->listen('bootstrapping: '.$bootstrapper, $callback);
 	}
 
 	/**
-	 * Load the provider for a deferred service.
+	 * Register a callback to run after a bootstrapper.
 	 *
-	 * @param  string  $service
+	 * @param  string  $bootstrapper
+	 * @param  Closure  $callback
 	 * @return void
 	 */
-	public function loadDeferredProvider($service)
+	public function afterBootstrapping($bootstrapper, Closure $callback)
 	{
-		if ( ! isset($this->deferredServices[$service]))
-		{
-			return;
-		}
-
-		$provider = $this->deferredServices[$service];
-
-		// If the service provider has not already been loaded and registered we can
-		// register it with the application and remove the service from this list
-		// of deferred services, since it will already be loaded on subsequent.
-		if ( ! isset($this->loadedProviders[$provider]))
-		{
-			$this->registerDeferredProvider($provider, $service);
-		}
-	}
-
-	/**
-	 * Determine if the application has booted.
-	 *
-	 * @return bool
-	 */
-	public function isBooted()
-	{
-		return $this->booted;
-	}
-
-	/**
-	 * Boot the application's service providers.
-	 *
-	 * @return void
-	 */
-	public function boot()
-	{
-		if ($this->booted) return;
-
-		// Once the application has booted we will also fire some "booted" callbacks
-		// for any listeners that need to do work after this initial booting gets
-		// finished. This is useful when ordering the boot-up processes we run.
-		$this->fireAppCallbacks($this->bootingCallbacks);
-
-		array_walk($this->serviceProviders, function($p) {
-			$this->bootProvider($p);
-		});
-
-		$this->booted = true;
-
-		$this->fireAppCallbacks($this->bootedCallbacks);
-	}
-
-	/**
-	 * Boot the given service provider.
-	 *
-	 * @param  \Illuminate\Support\ServiceProvider  $provider
-	 * @return void
-	 */
-	protected function bootProvider(ServiceProvider $provider)
-	{
-		if (method_exists($provider, 'boot'))
-		{
-			return $this->call([$provider, 'boot']);
-		}
-	}
-
-	/**
-	 * Register a new boot listener.
-	 *
-	 * @param  mixed  $callback
-	 * @return void
-	 */
-	public function booting($callback)
-	{
-		$this->bootingCallbacks[] = $callback;
-	}
-
-	/**
-	 * Register a new "booted" listener.
-	 *
-	 * @param  mixed  $callback
-	 * @return void
-	 */
-	public function booted($callback)
-	{
-		$this->bootedCallbacks[] = $callback;
-
-		if ($this->isBooted()) $this->fireAppCallbacks(array($callback));
+		$this['events']->listen('bootstrapped: '.$bootstrapper, $callback);
 	}
 
 	/**
@@ -561,6 +291,21 @@ class Application extends Container implements ApplicationContract{
 	}
 
 	/**
+	 * Set the database directory.
+	 *
+	 * @param  string  $path
+	 * @return $this
+	 */
+	public function useDatabasePath($path)
+	{
+		$this->databasePath = $path;
+
+		$this->instance('path.database', $path);
+
+		return $this;
+	}
+
+	/**
 	 * Get the path to the language files.
 	 *
 	 * @return string
@@ -590,6 +335,92 @@ class Application extends Container implements ApplicationContract{
 		return $this->storagePath ?: $this->basePath.DIRECTORY_SEPARATOR.'storage';
 	}
 
+	/**
+	 * Set the storage directory.
+	 *
+	 * @param  string  $path
+	 * @return $this
+	 */
+	public function useStoragePath($path)
+	{
+		$this->storagePath = $path;
+
+		$this->instance('path.storage', $path);
+
+		return $this;
+	}
+
+	/**
+	 * Get or check the current application environment.
+	 *
+	 * @param  mixed
+	 * @return string
+	 */
+	public function environment()
+	{
+		if (func_num_args() > 0)
+		{
+			$patterns = is_array(func_get_arg(0)) ? func_get_arg(0) : func_get_args();
+
+			foreach ($patterns as $pattern)
+			{
+				if (str_is($pattern, $this['env']))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+		return $this['env'];
+	}
+
+	/**
+	 * Determine if application is in local environment.
+	 *
+	 * @return bool
+	 */
+	public function isLocal()
+	{
+		return $this['env'] == 'local';
+	}
+
+	/**
+	 * Detect the application's current environment.
+	 *
+	 * @param  \Closure  $callback
+	 * @return string
+	 */
+	public function detectEnvironment(\Closure $callback)
+	{
+		$args = isset($_SERVER['argv']) ? $_SERVER['argv'] : null;
+
+		return $this['env'] = (new EnvironmentDetector())->detect($callback, $args);
+	}
+
+	/**
+	 * Determine if we are running in the console.
+	 *
+	 * @return bool
+	 */
+	public function runningInConsole()
+	{
+		return php_sapi_name() == 'cli';
+	}
+
+
+	/**
+	 * Register all of the configured providers.
+	 *
+	 * @return void
+	 */
+	public function registerConfiguredProviders()
+	{
+		$manifestPath = $this->getCachedServicesPath();
+
+		(new ProviderRepository($this, new Filesystem, $manifestPath))
+					->load($this->config['app.providers']);
+	}
 
 	/**
 	 * Register a service provider with the application.
@@ -680,6 +511,325 @@ class Application extends Container implements ApplicationContract{
 	}
 
 	/**
+	 * Load and boot all of the remaining deferred providers.
+	 *
+	 * @return void
+	 */
+	public function loadDeferredProviders()
+	{
+		// We will simply spin through each of the deferred providers and register each
+		// one and boot them if the application has booted. This should make each of
+		// the remaining services available to this application for immediate use.
+		foreach ($this->deferredServices as $service => $provider)
+		{
+			$this->loadDeferredProvider($service);
+		}
+
+		$this->deferredServices = array();
+	}
+
+	/**
+	 * Load the provider for a deferred service.
+	 *
+	 * @param  string  $service
+	 * @return void
+	 */
+	public function loadDeferredProvider($service)
+	{
+		if ( ! isset($this->deferredServices[$service]))
+		{
+			return;
+		}
+
+		$provider = $this->deferredServices[$service];
+
+		// If the service provider has not already been loaded and registered we can
+		// register it with the application and remove the service from this list
+		// of deferred services, since it will already be loaded on subsequent.
+		if ( ! isset($this->loadedProviders[$provider]))
+		{
+			$this->registerDeferredProvider($provider, $service);
+		}
+	}
+
+	/**
+	 * Register a deferred provider and service.
+	 *
+	 * @param  string  $provider
+	 * @param  string  $service
+	 * @return void
+	 */
+	public function registerDeferredProvider($provider, $service = null)
+	{
+		// Once the provider that provides the deferred service has been registered we
+		// will remove it from our local list of the deferred services with related
+		// providers so that this container does not try to resolve it out again.
+		if ($service) unset($this->deferredServices[$service]);
+
+		$this->register($instance = new $provider($this));
+
+		if ( ! $this->booted)
+		{
+			$this->booting(function() use ($instance)
+			{
+				$this->bootProvider($instance);
+			});
+		}
+	}
+
+	/**
+	 * Resolve the given type from the container.
+	 *
+	 * (Overriding Container::make)
+	 *
+	 * @param  string  $abstract
+	 * @param  array   $parameters
+	 * @return mixed
+	 */
+	public function make($abstract, $parameters = array())
+	{
+		$abstract = $this->getAlias($abstract);
+
+		if (isset($this->deferredServices[$abstract]))
+		{
+			$this->loadDeferredProvider($abstract);
+		}
+
+		return parent::make($abstract, $parameters);
+	}
+
+	/**
+	 * Determine if the given abstract type has been bound.
+	 *
+	 * (Overriding Container::bound)
+	 *
+	 * @param  string  $abstract
+	 * @return bool
+	 */
+	public function bound($abstract)
+	{
+		return isset($this->deferredServices[$abstract]) || parent::bound($abstract);
+	}
+
+	/**
+	 * Determine if the application has booted.
+	 *
+	 * @return bool
+	 */
+	public function isBooted()
+	{
+		return $this->booted;
+	}
+
+	/**
+	 * Boot the application's service providers.
+	 *
+	 * @return void
+	 */
+	public function boot()
+	{
+		if ($this->booted) return;
+
+		// Once the application has booted we will also fire some "booted" callbacks
+		// for any listeners that need to do work after this initial booting gets
+		// finished. This is useful when ordering the boot-up processes we run.
+		$this->fireAppCallbacks($this->bootingCallbacks);
+
+		array_walk($this->serviceProviders, function($p) {
+			$this->bootProvider($p);
+		});
+
+		$this->booted = true;
+
+		$this->fireAppCallbacks($this->bootedCallbacks);
+	}
+
+	/**
+	 * Boot the given service provider.
+	 *
+	 * @param  \Illuminate\Support\ServiceProvider  $provider
+	 * @return void
+	 */
+	protected function bootProvider(ServiceProvider $provider)
+	{
+		if (method_exists($provider, 'boot'))
+		{
+			return $this->call([$provider, 'boot']);
+		}
+	}
+
+	/**
+	 * Register a new boot listener.
+	 *
+	 * @param  mixed  $callback
+	 * @return void
+	 */
+	public function booting($callback)
+	{
+		$this->bootingCallbacks[] = $callback;
+	}
+
+	/**
+	 * Register a new "booted" listener.
+	 *
+	 * @param  mixed  $callback
+	 * @return void
+	 */
+	public function booted($callback)
+	{
+		$this->bootedCallbacks[] = $callback;
+
+		if ($this->isBooted()) $this->fireAppCallbacks(array($callback));
+	}
+
+	/**
+	 * Get the path to the cached "compiled.php" file.
+	 *
+	 * @return string
+	 */
+	public function getCachedCompilePath()
+	{
+		if ($this->vendorIsWritableForOptimizations())
+		{
+			return $this->basePath().'/vendor/compiled.php';
+		}
+		else
+		{
+			return $this->storagePath().'/framework/compiled.php';
+		}
+	}
+
+	/**
+	 * Get the path to the cached services.json file.
+	 *
+	 * @return string
+	 */
+	public function getCachedServicesPath()
+	{
+		if ($this->vendorIsWritableForOptimizations())
+		{
+			return $this->basePath().'/vendor/services.json';
+		}
+		else
+		{
+			return $this->storagePath().'/framework/services.json';
+		}
+	}
+
+	/**
+	 * Determine if vendor path is writable.
+	 *
+	 * @return bool
+	 */
+	public function vendorIsWritableForOptimizations()
+	{
+		if ($this->useStoragePathForOptimizations) return false;
+
+		return is_writable($this->basePath().'/vendor');
+	}
+
+	/**
+	 * Determines if storage directory should be used for optimizations.
+	 *
+	 * @param  bool  $value
+	 * @return $this
+	 */
+	public function useStoragePathForOptimizations($value = true)
+	{
+		$this->useStoragePathForOptimizations = $value;
+
+		return $this;
+	}
+
+
+	/**
+	 * Call the booting callbacks for the application.
+	 *
+	 * @param  array  $callbacks
+	 * @return void
+	 */
+	protected function fireAppCallbacks(array $callbacks)
+	{
+		foreach ($callbacks as $callback)
+		{
+			call_user_func($callback, $this);
+		}
+	}
+
+	/**
+	 * Determine if the application is currently down for maintenance.
+	 *
+	 * @return bool
+	 */
+	public function isDownForMaintenance()
+	{
+		return file_exists($this->storagePath().DIRECTORY_SEPARATOR.'framework'.DIRECTORY_SEPARATOR.'down');
+	}
+
+	/**
+	 * Get the service providers that have been loaded.
+	 *
+	 * @return array
+	 */
+	public function getLoadedProviders()
+	{
+		return $this->loadedProviders;
+	}
+
+	/**
+	 * Get the application's deferred services.
+	 *
+	 * @return array
+	 */
+	public function getDeferredServices()
+	{
+		return $this->deferredServices;
+	}
+
+	/**
+	 * Set the application's deferred services.
+	 *
+	 * @param  array  $services
+	 * @return void
+	 */
+	public function setDeferredServices(array $services)
+	{
+		$this->deferredServices = $services;
+	}
+
+	/**
+	 * Add an array of services to the application's deferred services.
+	 *
+	 * @param  array  $services
+	 * @return void
+	 */
+	public function addDeferredServices(array $services)
+	{
+		$this->deferredServices = array_merge($this->deferredServices, $services);
+	}
+
+	/**
+	 * Determine if the given service is a deferred service.
+	 *
+	 * @param  string  $service
+	 * @return bool
+	 */
+	public function isDeferredService($service)
+	{
+		return isset($this->deferredServices[$service]);
+	}
+
+	/**
+	 * Get the current application locale.
+	 *
+	 * @return string
+	 */
+	public function getLocale()
+	{
+		return $this['config']->get('app.locale');
+	}
+
+	/**
 	 * Set the current application locale.
 	 *
 	 * @param  string  $locale
@@ -690,6 +840,8 @@ class Application extends Container implements ApplicationContract{
 		$this['config']->set('app.locale', $locale);
 
 		$this['translator']->setLocale($locale);
+
+		$this['events']->fire('locale.changed', array($locale));
 	}
 
 	/**
@@ -705,6 +857,7 @@ class Application extends Container implements ApplicationContract{
 			'events'               => ['Illuminate\Events\Dispatcher', 'Illuminate\Contracts\Events\Dispatcher'],
 			'log'                  => ['Illuminate\Log\Writer', 'Illuminate\Contracts\Logging\Log', 'Psr\Log\LoggerInterface'],
 			'artisan'              => ['Illuminate\Console\Application', 'Illuminate\Contracts\Console\Application'],
+			'view'                 => ['Illuminate\View\Factory', 'Illuminate\Contracts\View\Factory'],
 			/*'auth'                 => 'Illuminate\Auth\AuthManager',
 			'auth.driver'          => ['Illuminate\Auth\Guard', 'Illuminate\Contracts\Auth\Guard'],
 			'auth.password.tokens' => 'Illuminate\Auth\Passwords\TokenRepositoryInterface',
@@ -734,8 +887,7 @@ class Application extends Container implements ApplicationContract{
 			'session'              => 'Illuminate\Session\SessionManager',
 			'session.store'        => ['Illuminate\Session\Store', 'Symfony\Component\HttpFoundation\Session\SessionInterface'],
 			'url'                  => ['Illuminate\Routing\UrlGenerator', 'Illuminate\Contracts\Routing\UrlGenerator'],
-			
-			'view'                 => ['Illuminate\View\Factory', 'Illuminate\Contracts\View\Factory'],*/
+			*/
 		);
 
 		foreach ($aliases as $key => $aliases)
@@ -745,5 +897,17 @@ class Application extends Container implements ApplicationContract{
 				$this->alias($key, $alias);
 			}
 		}
+	}
+
+	/**
+	 * Flush the container of all bindings and resolved instances.
+	 *
+	 * @return void
+	 */
+	public function flush()
+	{
+		parent::flush();
+
+		$this->loadedProviders = [];
 	}
 }
