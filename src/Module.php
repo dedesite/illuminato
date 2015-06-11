@@ -23,15 +23,38 @@ class Module extends \Module {
 		$this->description = Lang::get(Config::get('module.description'));
 	}
 
-	/**
-	 * Call the artisan migrate function
-	 */
 	public function install()
 	{
 		// Call install parent method
 		if (!parent::install())
 			return false;
 
+		if (!$this->applyMigration())
+			return false;
+
+		if(!$this->autoRegisterHooks())
+			return false;
+
+		return true;
+	}
+
+	public function uninstall()
+	{
+		// Call install parent method
+		if (!parent::uninstall())
+			return false;
+
+		if (!$this->resetMigration())
+			return false;
+
+		return true;
+	}
+
+	/**
+	 * Call the artisan migrate function
+	 */
+	protected function applyMigration()
+	{
 		try
 		{
 			//Use the force option to avoid confirmation
@@ -49,12 +72,8 @@ class Module extends \Module {
 	/**
 	 * Call the artisan migrate:reset function
 	 */
-	public function uninstall()
+	protected function resetMigration()
 	{
-		// Call install parent method
-		if (!parent::uninstall())
-			return false;
-
 		//Need to manually load all migration files
 		$path = App::migrationPath();
 		$app = App::getInstance();
@@ -74,6 +93,22 @@ class Module extends \Module {
 		return true;
 	}
 
+	/**
+	 * Find all function that start with "hook" and register them
+	 */
+	protected function autoRegisterHooks()
+	{
+		$class_methods = get_class_methods($this);
+		$hook_methods = preg_grep("/^hook/", $class_methods);
+		foreach ($hook_methods as $hook)
+		{
+			if(!$this->registerHook(substr($hook, 4)))
+				return false;
+		}
+
+		return true;
+	}
+
 	protected function checkName()
 	{
 		$class_name = strtolower(get_class($this));
@@ -82,6 +117,7 @@ class Module extends \Module {
 			$this->name = $class_name;
 		}
 		else {
+			//TODO : better error handling...
 			dd('Error directory or file not found with the name : '.$class_name);
 		}
 	}
