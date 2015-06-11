@@ -291,6 +291,16 @@ class Application extends Container implements ApplicationContract{
 	}
 
 	/**
+	 * Get the path to the migration directory.
+	 *
+	 * @return string
+	 */
+	public function migrationPath()
+	{
+		return $this->databasePath().DIRECTORY_SEPARATOR.'migrations';
+	}
+
+	/**
 	 * Set the database directory.
 	 *
 	 * @param  string  $path

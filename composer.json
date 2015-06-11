@@ -19,6 +19,7 @@
     "autoload": {
         "psr-4": {
             "Illuminato\\": "src/",
+            "Illuminato\\Console\\Commands\\": "src/Console/",
             "Illuminate\\Foundation\\": "src/Foundation/",
             "Illuminate\\Foundation\\Providers\\": "src/Foundation/Providers/"
         },

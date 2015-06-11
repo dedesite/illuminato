@@ -3,6 +3,7 @@
 use Config;
 use Lang;
 use App;
+use Artisan;
 
 /**
  * Class that simplify module creation and which module can derivate from
@@ -22,14 +23,59 @@ class Module extends \Module {
 		$this->description = Lang::get(Config::get('module.description'));
 	}
 
-	public function install() {
+	/**
+	 * Call the artisan migrate function
+	 */
+	public function install()
+	{
 		// Call install parent method
 		if (!parent::install())
 			return false;
-		//App::make('migrate')->run('path/to/migrations');
+
+		try
+		{
+			//Use the force option to avoid confirmation
+			Artisan::call('migrate', ['--force' => true]);
+		}
+		catch (Exception $e)
+		{
+			//TODO : Add some error message in admin panel
+			return false;
+		}
+
+		return true;
 	}
 
-	protected function checkName() {
+	/**
+	 * Call the artisan migrate:reset function
+	 */
+	public function uninstall()
+	{
+		// Call install parent method
+		if (!parent::uninstall())
+			return false;
+
+		//Need to manually load all migration files
+		$path = App::migrationPath();
+		$app = App::getInstance();
+		$files = $app['migrator']->getMigrationFiles($path);
+		$app['migrator']->requireFiles($path, $files);
+		try
+		{
+			//Use the force option to avoid confirmation
+			Artisan::call('migrate:reset', ['--force' => true]);
+		}
+		catch (Exception $e)
+		{
+			//TODO : Add some error message in admin panel
+			return false;
+		}
+
+		return true;
+	}
+
+	protected function checkName()
+	{
 		$class_name = strtolower(get_class($this));
 		$dir = _PS_MODULE_DIR_.'/'.$class_name;
 		if(is_dir($dir) && is_file($dir.'/'.$class_name.'.php')) {

@@ -46,6 +46,16 @@ class Kernel implements KernelContract {
 	];
 
 	/**
+	 * The Artisan commands provided by your application.
+	 *
+	 * @var array
+	 */
+	protected $commands = [
+		'Illuminato\Console\Commands\Inspire',
+	];
+
+
+	/**
 	 * Create a new console kernel instance.
 	 *
 	 * @param  \Illuminate\Contracts\Foundation\Application  $app
