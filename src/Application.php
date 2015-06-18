@@ -103,11 +103,6 @@ class Application extends Container implements ApplicationContract{
 	 */
 	public function __construct($basePath = null)
 	{
-		//Set local from Prestashop context
-		//TODO : local should probably be loaded from config
-		//$context = \Context::getContext();
-		//$this->setLocale($context->language->iso_code);
-
 		$this->registerBaseBindings();
 
 		$this->registerBaseServiceProviders();

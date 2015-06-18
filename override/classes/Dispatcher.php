@@ -53,6 +53,12 @@ class Dispatcher extends DispatcherCore
 		);
 
 		/*
+		 | Set locale from Prestashop context
+		 */
+		$context = \Context::getContext();
+		$app->setLocale($context->language->iso_code);
+
+		/*
 
 		$response->send();
 
