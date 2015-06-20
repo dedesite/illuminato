@@ -4,6 +4,7 @@ use Config;
 use Lang;
 use App;
 use Artisan;
+use DB;
 
 /**
  * Class that simplify module creation and which module can derivate from
@@ -21,6 +22,8 @@ class Module extends \Module {
 		parent::__construct();
 		$this->displayName = Lang::get(Config::get('module.displayName'));
 		$this->description = Lang::get(Config::get('module.description'));
+		if(static::isEnabled($this->name))
+			$this->applyNewMigrations();
 	}
 
 	public function install()
@@ -50,6 +53,35 @@ class Module extends \Module {
 		return true;
 	}
 
+	protected function applyNewMigrations()
+	{
+		//Check if there are some new migrations
+		if($this->isNewMigrationsAvailable())
+		{
+			$this->applyMigration();
+		}
+	}
+
+	protected function isNewMigrationsAvailable()
+	{
+		$files = App::migrationFiles();
+		$last_migration = last($files);
+		//No migration file
+		if(!$last_migration)
+			return false;
+
+		//TODO : use DB:: .It'is not available, don't know why
+		$app = App::getInstance();
+		$last_db_migration = $app['db']->table('migrations')
+			->orderBy('migration', 'desc')
+			->first();
+		//No migration applied
+		if($last_db_migration === null)
+			return true;
+
+		return $last_migration != $last_db_migration->migration;
+	}
+
 	/**
 	 * Call the artisan migrate function
 	 */
@@ -75,9 +107,9 @@ class Module extends \Module {
 	protected function resetMigration()
 	{
 		//Need to manually load all migration files
-		$path = App::migrationPath();
 		$app = App::getInstance();
-		$files = $app['migrator']->getMigrationFiles($path);
+		$path = App::migrationPath();
+		$files = App::migrationFiles();
 		$app['migrator']->requireFiles($path, $files);
 		try
 		{

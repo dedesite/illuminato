@@ -296,6 +296,16 @@ class Application extends Container implements ApplicationContract{
 	}
 
 	/**
+	 * Get all the migration's files
+	 *
+	 * @return array
+	 */
+	public function migrationFiles()
+	{
+		return $this['migrator']->getMigrationFiles($this->migrationPath());
+	}
+
+	/**
 	 * Set the database directory.
 	 *
 	 * @param  string  $path
@@ -863,6 +873,7 @@ class Application extends Container implements ApplicationContract{
 			'log'                  => ['Illuminate\Log\Writer', 'Illuminate\Contracts\Logging\Log', 'Psr\Log\LoggerInterface'],
 			'artisan'              => ['Illuminate\Console\Application', 'Illuminate\Contracts\Console\Application'],
 			'view'                 => ['Illuminate\View\Factory', 'Illuminate\Contracts\View\Factory'],
+			'db'                   => 'Illuminate\Database\DatabaseManager',
 			/*'auth'                 => 'Illuminate\Auth\AuthManager',
 			'auth.driver'          => ['Illuminate\Auth\Guard', 'Illuminate\Contracts\Auth\Guard'],
 			'auth.password.tokens' => 'Illuminate\Auth\Passwords\TokenRepositoryInterface',
@@ -872,7 +883,6 @@ class Application extends Container implements ApplicationContract{
 			'config'               => ['Illuminate\Config\Repository', 'Illuminate\Contracts\Config\Repository'],
 			'cookie'               => ['Illuminate\Cookie\CookieJar', 'Illuminate\Contracts\Cookie\Factory', 'Illuminate\Contracts\Cookie\QueueingFactory'],
 			'encrypter'            => ['Illuminate\Encryption\Encrypter', 'Illuminate\Contracts\Encryption\Encrypter'],
-			'db'                   => 'Illuminate\Database\DatabaseManager',
 			'files'                => 'Illuminate\Filesystem\Filesystem',
 			'filesystem'           => ['Illuminate\Filesystem\FilesystemManager', 'Illuminate\Contracts\Filesystem\Factory'],
 			'filesystem.disk'      => 'Illuminate\Contracts\Filesystem\Filesystem',
