@@ -601,7 +601,7 @@ class Application extends Container implements ApplicationContract{
 	 * @param  array   $parameters
 	 * @return mixed
 	 */
-	public function make($abstract, $parameters = array())
+	public function make($abstract, array $parameters = [])
 	{
 		$abstract = $this->getAlias($abstract);
 
