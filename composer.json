@@ -21,10 +21,14 @@
             "Illuminato\\": "src/",
             "Illuminato\\Console\\Commands\\": "src/Console/",
             "Illuminate\\Foundation\\": "src/Foundation/",
+            "Illuminate\\Foundation\\Bootstrap\\": "src/Foundation/Bootstrap/",
+            "Illuminate\\Foundation\\Exception\\": "src/Foundation/Exception/",
+            "Illuminate\\Foundation\\Http\\": "src/Foundation/Http/",
+            "Illuminate\\Foundation\\Console\\": "src/Foundation/Console/",
             "Illuminate\\Foundation\\Providers\\": "src/Foundation/Providers/"
         },
         "files": [
-            "src/helpers.php"
+            "src/Foundation/helpers.php"
         ]
     }
 }

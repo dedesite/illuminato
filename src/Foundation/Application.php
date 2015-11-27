@@ -1,4 +1,4 @@
-<?php namespace Illuminato;
+<?php namespace Illuminate\Foundation;
 
 use Illuminate\Container\Container;
 use Illuminate\Filesystem\Filesystem;
@@ -161,9 +161,7 @@ class Application extends Container implements ApplicationContract{
 		foreach ($bootstrappers as $bootstrapper)
 		{
 			$this['events']->fire('bootstrapping: '.$bootstrapper, [$this]);
-
 			$this->make($bootstrapper)->bootstrap($this);
-
 			$this['events']->fire('bootstrapped: '.$bootstrapper, [$this]);
 		}
 	}
@@ -410,7 +408,7 @@ class Application extends Container implements ApplicationContract{
 	{
 		$args = isset($_SERVER['argv']) ? $_SERVER['argv'] : null;
 
-		return $this['env'] = (new EnvironmentDetector())->detect($callback, $args);
+		return $this['env'] = (new \Illuminate\Foundation\EnvironmentDetector())->detect($callback, $args);
 	}
 
 	/**
@@ -874,6 +872,7 @@ class Application extends Container implements ApplicationContract{
 			'artisan'              => ['Illuminate\Console\Application', 'Illuminate\Contracts\Console\Application'],
 			'view'                 => ['Illuminate\View\Factory', 'Illuminate\Contracts\View\Factory'],
 			'db'                   => 'Illuminate\Database\DatabaseManager',
+			'translator'           => ['Illuminate\Translation\Translator', 'Symfony\Component\Translation\TranslatorInterface'],
 			/*'auth'                 => 'Illuminate\Auth\AuthManager',
 			'auth.driver'          => ['Illuminate\Auth\Guard', 'Illuminate\Contracts\Auth\Guard'],
 			'auth.password.tokens' => 'Illuminate\Auth\Passwords\TokenRepositoryInterface',
@@ -888,8 +887,6 @@ class Application extends Container implements ApplicationContract{
 			'filesystem.disk'      => 'Illuminate\Contracts\Filesystem\Filesystem',
 			'filesystem.cloud'     => 'Illuminate\Contracts\Filesystem\Cloud',
 			'hash'                 => 'Illuminate\Contracts\Hashing\Hasher',
-			'translator'           => ['Illuminate\Translation\Translator', 'Symfony\Component\Translation\TranslatorInterface'],
-			'log'                  => ['Illuminate\Log\Writer', 'Illuminate\Contracts\Logging\Log', 'Psr\Log\LoggerInterface'],
 			'mailer'               => ['Illuminate\Mail\Mailer', 'Illuminate\Contracts\Mail\Mailer', 'Illuminate\Contracts\Mail\MailQueue'],
 			'paginator'            => 'Illuminate\Pagination\Factory',
 			'auth.password'        => ['Illuminate\Auth\Passwords\PasswordBroker', 'Illuminate\Contracts\Auth\PasswordBroker'],

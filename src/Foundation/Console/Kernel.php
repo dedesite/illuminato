@@ -36,13 +36,13 @@ class Kernel implements KernelContract {
 	 * @var array
 	 */
 	protected $bootstrappers = [
-		'Illuminato\DetectEnvironment',
-		'Illuminato\LoadConfiguration',
-		'Illuminato\ConfigureLogging',
-		'Illuminato\HandleExceptions',
-		'Illuminato\RegisterFacades',
-		'Illuminato\RegisterProviders',
-		'Illuminato\BootProviders',
+		'Illuminate\Foundation\Bootstrap\DetectEnvironment',
+		'Illuminate\Foundation\Bootstrap\LoadConfiguration',
+		'Illuminate\Foundation\Bootstrap\ConfigureLogging',
+		'Illuminate\Foundation\Exception\HandleExceptions',
+		'Illuminate\Foundation\Bootstrap\RegisterFacades',
+		'Illuminate\Foundation\Bootstrap\RegisterProviders',
+		'Illuminate\Foundation\Bootstrap\BootProviders',
 	];
 
 	/**

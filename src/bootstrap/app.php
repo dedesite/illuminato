@@ -10,7 +10,7 @@
 |
 */
 
-$app = new Illuminato\Application(
+$app = new Illuminate\Foundation\Application(
 	//Start with on module as the root
 	//TODO : handle multimodule
 	realpath(__DIR__.'/../../../illuminatocomments')
@@ -28,7 +28,7 @@ $app = new Illuminato\Application(
 
 $app->singleton(
 	'Illuminate\Contracts\Http\Kernel',
-	'Illuminato\Kernel'
+	'Illuminate\Foundation\Http\Kernel'
 );
 
 $app->singleton(
@@ -38,7 +38,7 @@ $app->singleton(
 
 $app->singleton(
 	'Illuminate\Contracts\Debug\ExceptionHandler',
-	'Illuminato\Handler'
+	'Illuminate\Foundation\Exception\Handler'
 );
 
 /*

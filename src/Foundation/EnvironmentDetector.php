@@ -1,4 +1,4 @@
-<?php namespace Illuminato;
+<?php namespace Illuminate\Foundation;
 
 use Closure;
 

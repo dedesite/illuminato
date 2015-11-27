@@ -1,4 +1,4 @@
-<?php namespace Illuminato;
+<?php namespace Illuminate\Foundation\Bootstrap;
 
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Contracts\Foundation\Application;

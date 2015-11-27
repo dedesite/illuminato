@@ -1,8 +1,8 @@
-<?php namespace Illuminato;
+<?php namespace Illuminate\Foundation\Bootstrap;
 
-//use Illuminato\Application;
+use Illuminate\Contracts\Foundation\Application;
 
-class RegisterProviders {
+class BootProviders {
 
 	/**
 	 * Bootstrap the given application.
@@ -12,7 +12,7 @@ class RegisterProviders {
 	 */
 	public function bootstrap(Application $app)
 	{
-		$app->registerConfiguredProviders();
+		$app->boot();
 	}
 
 }
