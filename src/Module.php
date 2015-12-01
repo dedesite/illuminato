@@ -24,6 +24,8 @@ class Module extends \Module {
 		$this->description = Lang::get(Config::get('module.description'));
 		if(static::isEnabled($this->name))
 			$this->applyNewMigrations();
+		//Convenient Prestashop conf with prefix
+		$this->conf = new Conf(strtoupper(get_class($this)));
 	}
 
 	public function install()

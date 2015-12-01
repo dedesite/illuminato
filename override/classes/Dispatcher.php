@@ -18,7 +18,7 @@ class Dispatcher extends DispatcherCore
 		*/
 		require _PS_MODULE_DIR_.'/illuminato/src/bootstrap/autoload.php';
 		
-		// Don't know why yet but this file isn't loaded with autoload...
+		// @todo Don't know why yet but this file isn't loaded with autoload...
 		require_once _PS_MODULE_DIR_.'/illuminato/src/Module.php';
 
 		/*
