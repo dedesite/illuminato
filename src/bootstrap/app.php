@@ -11,9 +11,7 @@
 */
 
 $app = new Illuminate\Foundation\Application(
-	//Start with on module as the root
-	//TODO : handle multimodule
-	realpath(__DIR__.'/../../../illuminatocomments')
+	realpath(__DIR__.'/../..')
 );
 /*
 |--------------------------------------------------------------------------

@@ -14,14 +14,15 @@ class Module extends \Module {
 		$this->checkName();
 		//Illuminato module need to be install before installing this one
 		$this->dependencies = array('illuminato');
-		$this->tab = Config::get('module.tab');
-		$this->version = Config::get('module.version');
-		$this->author = Config::get('module.author');
+		$configName = strtolower(get_class($this));
+		$this->tab = Config::get($configName.'.tab');
+		$this->version = Config::get($configName.'.version');
+		$this->author = Config::get($configName.'.author');
 		//Module are bootstrap 'aware' by default
 		$this->bootstrap = true;
 		parent::__construct();
-		$this->displayName = Lang::get(Config::get('module.displayName'));
-		$this->description = Lang::get(Config::get('module.description'));
+		$this->displayName = Lang::get(Config::get($configName.'.displayName'));
+		$this->description = Lang::get(Config::get($configName.'.description'));
 		if(static::isEnabled($this->name))
 			$this->applyNewMigrations();
 		//Convenient Prestashop conf with prefix
@@ -72,7 +73,7 @@ class Module extends \Module {
 		if(!$last_migration)
 			return false;
 
-		//TODO : use DB:: .It'is not available, don't know why
+		//@todo : use DB:: .It'is not available, don't know why
 		$app = App::getInstance();
 		$last_db_migration = $app['db']->table('migrations')
 			->orderBy('migration', 'desc')
@@ -96,7 +97,7 @@ class Module extends \Module {
 		}
 		catch (Exception $e)
 		{
-			//TODO : Add some error message in admin panel
+			//@todo : Add some error message in admin panel
 			return false;
 		}
 
@@ -120,7 +121,7 @@ class Module extends \Module {
 		}
 		catch (Exception $e)
 		{
-			//TODO : Add some error message in admin panel
+			//@todo : Add some error message in admin panel
 			return false;
 		}
 
@@ -151,7 +152,7 @@ class Module extends \Module {
 			$this->name = $class_name;
 		}
 		else {
-			//TODO : better error handling...
+			//@todo : better error handling...
 			dd('Error directory or file not found with the name : '.$class_name);
 		}
 	}

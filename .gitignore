@@ -1,2 +1,5 @@
 vendor/
+storage/logs/*.log
+storage/framework/views/*
+!storage/framework/views/.gitkeep
 config_fr.xml
