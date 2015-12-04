@@ -655,9 +655,6 @@ class Application extends Container implements ApplicationContract{
 		$this->booted = true;
 
 		$this->fireAppCallbacks($this->bootedCallbacks);
-		//@temp here load the module's config file cause for now module's service providers
-		//are defined in config['app.providers']
-		$this->make('Illuminate\Foundation\Bootstrap\LoadConfiguration')->loadModuleConfigurationFiles($this);
 	}
 
 	/**

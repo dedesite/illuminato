@@ -15,5 +15,18 @@ abstract class IlluminatoServiceProvider extends ServiceProvider
     {
         $this->app['config']->addNamespace($namespace, $path);
     }
+
+    /**
+     * Register a translation file namespace.
+     *
+     * @param  string  $path
+     * @param  string  $namespace
+     * @return void
+     */
+    protected static function s_loadTranslationsFrom($path, $namespace)
+    {
+        $app = app();
+        $app['translator']->addNamespace($namespace, $path);
+    }
 }
 

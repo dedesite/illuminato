@@ -5,26 +5,35 @@ use Lang;
 use App;
 use Artisan;
 use DB;
+use Illuminato\Providers\ModuleServiceProvider;
 
 /**
  * Class that simplify module creation and which module can derivate from
  */
 abstract class Module extends \Module {
+	protected $namespace;
+
 	public function __construct() {
 		$this->checkName();
 		//Illuminato module need to be install before installing this one
 		$this->dependencies = array('illuminato');
+
 		$details = $this->moduleDetails();
+		isset($details['namespace']) ? $this->namespace = $details['namespace'] : $this->namespace = $this->name;
+		if(!static::isEnabled($this->name))
+			ModuleServiceProvider::loadUninstalledModuleTranslation($this->name, $this->namespace);
 		isset($details['tab']) && $this->tab = $details['tab'];
 		isset($details['version']) && $this->version = $details['version'];
 		isset($details['author']) && $this->author = $details['author'];
 		//Module are bootstrap 'aware' by default
 		$this->bootstrap = true;
 		parent::__construct();
-		isset($details['displayName']) && $this->displayName = $details['displayName'];
-		isset($details['description']) && $this->description = $details['description'];
+		isset($details['displayName']) && $this->displayName = Lang::get($details['displayName']);
+		isset($details['description']) && $this->description = Lang::get($details['description']);
+
 		if(static::isEnabled($this->name))
 			$this->applyNewMigrations();
+
 		//Convenient Prestashop conf with prefix
 		$this->conf = new Conf(strtoupper(get_class($this)));
 	}
@@ -37,11 +46,37 @@ abstract class Module extends \Module {
 	 */
 	abstract public function moduleDetails();
 
+	public static function getInstalledModules()
+	{
+		return unserialize(\Configuration::get('ILLUMINATO_INSTALLED_MODULES'));
+	}
+
+	public static function setInstalledModules($modules)
+	{
+		\Configuration::updateValue('ILLUMINATO_INSTALLED_MODULES', serialize($modules));
+	}
+
+	public function addToModuleList()
+	{
+		$installed_modules = static::getInstalledModules();
+		$installed_modules []= ['name' => $this->name, 'namespace' => $this->namespace];
+		static::setInstalledModules($installed_modules);
+	}
+
+	public function removeFromModuleList()
+	{
+		$installed_modules = static::getInstalledModules();
+		$modules = array_diff($installed_modules, ['name' => $this->name, 'namespace' => $this->namespace]);
+		static::setInstalledModules($modules);
+	}
+
 	public function install()
 	{
 		// Call install parent method
 		if (!parent::install())
 			return false;
+
+		$this->addToModuleList();
 
 		if (!$this->applyMigration())
 			return false;
@@ -57,6 +92,8 @@ abstract class Module extends \Module {
 		// Call install parent method
 		if (!parent::uninstall())
 			return false;
+
+		$this->removeFromModuleList();
 
 		if (!$this->resetMigration())
 			return false;

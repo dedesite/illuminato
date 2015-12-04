@@ -25,8 +25,7 @@
             "Illuminate\\Foundation\\Exception\\": "src/Foundation/Exception/",
             "Illuminate\\Foundation\\Http\\": "src/Foundation/Http/",
             "Illuminate\\Foundation\\Console\\": "src/Foundation/Console/",
-            "Illuminate\\Foundation\\Providers\\": "src/Foundation/Providers/",
-            "Illuminato\\Comments\\": "../illuminatocomments/Providers"
+            "Illuminate\\Foundation\\Providers\\": "src/Foundation/Providers/"
         },
         "files": [
             "src/Foundation/helpers.php"

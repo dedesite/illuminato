@@ -10,4 +10,14 @@ class Illuminato extends Module {
 		$this->displayName = $this->l('Illuminato Shop');
 		$this->description = $this->l('Provide a set of tools to help developping Prestashop modules within Laravel Philosophy.');
 	}
+
+	public function install()
+	{
+		// Call install parent method
+		if (!parent::install())
+			return false;
+		Configuration::updateValue('ILLUMINATO_INSTALLED_MODULES', serialize([]));
+
+		return true;
+	}
 }

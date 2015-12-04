@@ -149,9 +149,8 @@ return [
 
 		/*
 		 * Prestashop's module
-		 * @todo find a way to load them dynamically. Maybe store them in the DB and add them on bootstrap ?
 		 */
-		'Illuminato\Comments\CommentsServiceProvider',
+		'Illuminato\Providers\ModuleServiceProvider',
 	],
 
 	/*

@@ -1,4 +1,5 @@
 # TODO
+
 - Trouver une solution pour ne pas avoir a modifier Module.php et le eval code.
 	=> Peut-être ne pas utiliser use dans le code du module et charger le reste via l'autoload
 		=> Comment faire pour autoload les fichiers qui ne sont pas dans illuminato ?
@@ -70,3 +71,7 @@
 - Développer Smartier : un langage de template au dessus de SMARTY (un peu comme SASS) qui :
 	- Convertit l'Toto' en {capture name='my_module_tempvar'}{l s='World' mod='mymodule'}{/capture}  {assign var='my_module_name' value=$smarty.capture.my_module_tempvar} ? => Moche mais ça serait efficace...
 	- Permet de passer des tableaux dans du code genre Form::input(['toto'=>'tata'])
+
+DONE
+- Pouvoir rajouter dynamiquement des classes dans le autoload (serviceProvider) à l'installation du module
+Et aussi ne pas avoir à les rajouter au config.app.providers
