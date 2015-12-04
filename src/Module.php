@@ -5,13 +5,18 @@ use Lang;
 use App;
 use Artisan;
 use DB;
+use Illuminate\Database\Migrations\Migrator;
+use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminato\Providers\ModuleServiceProvider;
 
 /**
  * Class that simplify module creation and which module can derivate from
  */
 abstract class Module extends \Module {
-	protected $namespace;
+	protected $namespace = '';
+	//Each module got his own migrator and has migrations files
+	protected $migrator = null;
+	protected $migrationPath = '';
 
 	public function __construct() {
 		$this->checkName();
@@ -31,8 +36,9 @@ abstract class Module extends \Module {
 		isset($details['displayName']) && $this->displayName = Lang::get($details['displayName']);
 		isset($details['description']) && $this->description = Lang::get($details['description']);
 
+		$this->createMigrator();
 		if(static::isEnabled($this->name))
-			$this->applyNewMigrations();
+			$this->runMigrations();
 
 		//Convenient Prestashop conf with prefix
 		$this->conf = new Conf(strtoupper(get_class($this)));
@@ -78,7 +84,7 @@ abstract class Module extends \Module {
 
 		$this->addToModuleList();
 
-		if (!$this->applyMigration())
+		if (!$this->runMigrations())
 			return false;
 
 		if(!$this->autoRegisterHooks())
@@ -95,56 +101,26 @@ abstract class Module extends \Module {
 
 		$this->removeFromModuleList();
 
-		if (!$this->resetMigration())
+		if (!$this->resetMigrations())
 			return false;
 
 		return true;
 	}
 
-	protected function applyNewMigrations()
+	protected function createMigrator()
 	{
-		//Check if there are some new migrations
-		if($this->isNewMigrationsAvailable())
-		{
-			$this->applyMigration();
-		}
-	}
-
-	protected function isNewMigrationsAvailable()
-	{
-		$files = App::migrationFiles();
-		$last_migration = last($files);
-		//No migration file
-		if(!$last_migration)
-			return false;
-
-		//@todo : use DB:: .It'is not available, don't know why
 		$app = App::getInstance();
-		$last_db_migration = $app['db']->table('migrations')
-			->orderBy('migration', 'desc')
-			->first();
-		//No migration applied
-		if($last_db_migration === null)
-			return true;
-
-		return $last_migration != $last_db_migration->migration;
+		//The module's migration table name is : ps_modulename_migrations
+		$repo = new DatabaseMigrationRepository($app['db'], $this->name.'_migrations');
+		if(!$repo->repositoryExists())
+			$repo->createRepository();
+		$this->migrator = new Migrator($repo, $app['db'], $app['files']);
+		$this->migrationPath = _PS_MODULE_DIR_.$this->name.'/migrations';
 	}
 
-	/**
-	 * Call the artisan migrate function
-	 */
-	protected function applyMigration()
+	protected function runMigrations()
 	{
-		try
-		{
-			//Use the force option to avoid confirmation
-			Artisan::call('migrate', ['--force' => true]);
-		}
-		catch (Exception $e)
-		{
-			//@todo : Add some error message in admin panel
-			return false;
-		}
+		$this->migrator->run($this->migrationPath);
 
 		return true;
 	}
@@ -152,23 +128,11 @@ abstract class Module extends \Module {
 	/**
 	 * Call the artisan migrate:reset function
 	 */
-	protected function resetMigration()
+	protected function resetMigrations()
 	{
-		//Need to manually load all migration files
-		$app = App::getInstance();
-		$path = App::migrationPath();
-		$files = App::migrationFiles();
-		$app['migrator']->requireFiles($path, $files);
-		try
-		{
-			//Use the force option to avoid confirmation
-			Artisan::call('migrate:reset', ['--force' => true]);
-		}
-		catch (Exception $e)
-		{
-			//@todo : Add some error message in admin panel
-			return false;
-		}
+		$files = $this->migrator->getMigrationFiles($this->migrationPath);
+		$this->migrator->requireFiles($this->migrationPath, $files);
+		$this->migrator->reset();
 
 		return true;
 	}
@@ -192,7 +156,7 @@ abstract class Module extends \Module {
 	protected function checkName()
 	{
 		$class_name = strtolower(get_class($this));
-		$dir = _PS_MODULE_DIR_.'/'.$class_name;
+		$dir = _PS_MODULE_DIR_.$class_name;
 		if(is_dir($dir) && is_file($dir.'/'.$class_name.'.php')) {
 			$this->name = $class_name;
 		}
