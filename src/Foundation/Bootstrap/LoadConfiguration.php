@@ -54,7 +54,7 @@ class LoadConfiguration {
 		$config = $app['config'];
 		//Now load all module's config into namespace
 		foreach ($config->getModulePaths() as $namespace => $path) {
-			$this->loadConfigurationFiles($path, $config, $namespace.'::');
+			$this->loadConfigurationFiles($path, $config, $namespace);
 		}
 	}
 
@@ -70,7 +70,19 @@ class LoadConfiguration {
 	{
 		foreach ($this->getConfigurationFiles($configPath) as $key => $path)
 		{
-			$config->set($namespace.$key, require $path);
+			//Module config default filename is config
+			//This way module config is accessible via
+			// Config::get('namespace.value')
+			//Instead of :
+			// Config::get('namespace.config.value')
+			//Inspire from : https://octobercms.com/docs/plugin/settings#file-configuration
+			//But doesn't use :: notation for namespace cause otherwise it would have been
+			// Config::get('namespace::.value')
+			//@todo change the way Repository works to be able to use namespaces
+			if($namespace !== '' && $key === 'config')
+				$config->set($namespace, require $path);
+			else
+				$config->set($namespace.$key, require $path);
 		}
 	}
 

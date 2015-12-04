@@ -9,25 +9,33 @@ use DB;
 /**
  * Class that simplify module creation and which module can derivate from
  */
-class Module extends \Module {
+abstract class Module extends \Module {
 	public function __construct() {
 		$this->checkName();
 		//Illuminato module need to be install before installing this one
 		$this->dependencies = array('illuminato');
-		$configName = strtolower(get_class($this));
-		$this->tab = Config::get($configName.'.tab');
-		$this->version = Config::get($configName.'.version');
-		$this->author = Config::get($configName.'.author');
+		$details = $this->moduleDetails();
+		isset($details['tab']) && $this->tab = $details['tab'];
+		isset($details['version']) && $this->version = $details['version'];
+		isset($details['author']) && $this->author = $details['author'];
 		//Module are bootstrap 'aware' by default
 		$this->bootstrap = true;
 		parent::__construct();
-		$this->displayName = Lang::get(Config::get($configName.'.displayName'));
-		$this->description = Lang::get(Config::get($configName.'.description'));
+		isset($details['displayName']) && $this->displayName = $details['displayName'];
+		isset($details['description']) && $this->description = $details['description'];
 		if(static::isEnabled($this->name))
 			$this->applyNewMigrations();
 		//Convenient Prestashop conf with prefix
 		$this->conf = new Conf(strtoupper(get_class($this)));
 	}
+
+	/*
+	 * Each module need to declare it's details via this function
+	 * inspire from October CMS Plugin's registration file
+	 * https://octobercms.com/docs/plugin/registration#registration-file
+	 * @return Array
+	 */
+	abstract public function moduleDetails();
 
 	public function install()
 	{
