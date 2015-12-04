@@ -1,6 +1,6 @@
 <?php namespace Illuminate\Foundation\Bootstrap;
 
-use Illuminate\Config\Repository;
+use Illuminato\Config\IlluminatoRepository;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Illuminate\Contracts\Foundation\Application;
@@ -28,14 +28,15 @@ class LoadConfiguration {
 			$loadedFromCache = true;
 		}*/
 
-		$app->instance('config', $config = new Repository($items));
+		$app->instance('config', $config = new IlluminatoRepository($items));
 
 		// Next we will spin through all of the configuration files in the configuration
 		// directory and load each one into the repository. This will make all of the
 		// options available to the developer for use in various parts of this app.
 		if ( ! isset($loadedFromCache))
 		{
-			$this->loadConfigurationFiles($app, $config);
+			$this->loadConfigurationFiles($app->configPath(), $config);
+
 		}
 
 		date_default_timezone_set($config['app.timezone']);
@@ -44,34 +45,48 @@ class LoadConfiguration {
 	}
 
 	/**
+	 * Load all module's config files into there namespace
+	 * Need to be call after all the modules have been bootstraped
+	 * @param  \Illuminate\Contracts\Foundation\Application  $app
+	 */
+	public function loadModuleConfigurationFiles(Application $app)
+	{
+		$config = $app['config'];
+		//Now load all module's config into namespace
+		foreach ($config->getModulePaths() as $namespace => $path) {
+			$this->loadConfigurationFiles($path, $config, $namespace.'::');
+		}
+	}
+
+	/**
 	 * Load the configuration items from all of the files.
 	 *
-	 * @param  \Illuminate\Contracts\Foundation\Application  $app
+	 * @param  string  $configPath
 	 * @param  \Illuminate\Contracts\Config\Repository  $config
+	 * @param  string namespace
 	 * @return void
 	 */
-	protected function loadConfigurationFiles(Application $app, RepositoryContract $config)
+	protected function loadConfigurationFiles($configPath, RepositoryContract $config, $namespace = '')
 	{
-		foreach ($this->getConfigurationFiles($app) as $key => $path)
+		foreach ($this->getConfigurationFiles($configPath) as $key => $path)
 		{
-			$config->set($key, require $path);
+			$config->set($namespace.$key, require $path);
 		}
 	}
 
 	/**
 	 * Get all of the configuration files for the application.
 	 *
-	 * @param  \Illuminate\Contracts\Foundation\Application  $app
+	 * @param  string  $path
 	 * @return array
 	 */
-	protected function getConfigurationFiles(Application $app)
+	protected function getConfigurationFiles($path)
 	{
 		$files = [];
 
-		foreach (Finder::create()->files()->name('*.php')->in($app->configPath()) as $file)
+		foreach (Finder::create()->files()->name('*.php')->in($path) as $file)
 		{
-			$nesting = $this->getConfigurationNesting($file);
-
+			$nesting = $this->getConfigurationNesting($path, $file);
 			$files[$nesting.basename($file->getRealPath(), '.php')] = $file->getRealPath();
 		}
 
@@ -81,14 +96,15 @@ class LoadConfiguration {
 	/**
 	 * Get the configuration file nesting path.
 	 *
+	 * @param string $configPath
 	 * @param  \Symfony\Component\Finder\SplFileInfo  $file
 	 * @return string
 	 */
-	private function getConfigurationNesting(SplFileInfo $file)
+	private function getConfigurationNesting($configPath, SplFileInfo $file)
 	{
 		$directory = dirname($file->getRealPath());
 
-		if ($tree = trim(str_replace(config_path(), '', $directory), DIRECTORY_SEPARATOR))
+		if ($tree = trim(str_replace($configPath, '', $directory), DIRECTORY_SEPARATOR))
 		{
 			$tree = str_replace(DIRECTORY_SEPARATOR, '.', $tree).'.';
 		}

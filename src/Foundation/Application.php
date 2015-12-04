@@ -655,6 +655,9 @@ class Application extends Container implements ApplicationContract{
 		$this->booted = true;
 
 		$this->fireAppCallbacks($this->bootedCallbacks);
+		//@temp here load the module's config file cause for now module's service providers
+		//are defined in config['app.providers']
+		$this->make('Illuminate\Foundation\Bootstrap\LoadConfiguration')->loadModuleConfigurationFiles($this);
 	}
 
 	/**
@@ -873,13 +876,13 @@ class Application extends Container implements ApplicationContract{
 			'view'                 => ['Illuminate\View\Factory', 'Illuminate\Contracts\View\Factory'],
 			'db'                   => 'Illuminate\Database\DatabaseManager',
 			'translator'           => ['Illuminate\Translation\Translator', 'Symfony\Component\Translation\TranslatorInterface'],
+			'config'               => ['Illuminato\Config\IlluminatoRepository', 'Illuminate\Contracts\Config\Repository'],
 			/*'auth'                 => 'Illuminate\Auth\AuthManager',
 			'auth.driver'          => ['Illuminate\Auth\Guard', 'Illuminate\Contracts\Auth\Guard'],
 			'auth.password.tokens' => 'Illuminate\Auth\Passwords\TokenRepositoryInterface',
 			'blade.compiler'       => 'Illuminate\View\Compilers\BladeCompiler',
 			'cache'                => ['Illuminate\Cache\CacheManager', 'Illuminate\Contracts\Cache\Factory'],
 			'cache.store'          => ['Illuminate\Cache\Repository', 'Illuminate\Contracts\Cache\Repository'],
-			'config'               => ['Illuminate\Config\Repository', 'Illuminate\Contracts\Config\Repository'],
 			'cookie'               => ['Illuminate\Cookie\CookieJar', 'Illuminate\Contracts\Cookie\Factory', 'Illuminate\Contracts\Cookie\QueueingFactory'],
 			'encrypter'            => ['Illuminate\Encryption\Encrypter', 'Illuminate\Contracts\Encryption\Encrypter'],
 			'files'                => 'Illuminate\Filesystem\Filesystem',
