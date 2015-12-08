@@ -5,28 +5,24 @@ Illuminato is a set of tools that allows Prestashop Module developpers to use La
 
 For now, it is a nasty hack, maybe it will evolve into something cleaner.
 
-# History
-
-I found myself trying to write a PrestaShop module which uses the Prestashop's FormHelper class and complaining a lot about it. In fact, it was such a complexe tool to use that my code was more complex and long than a plain old Html form, plus you can only use it for simple cases. I found that the FormHelper is not able to generate the forms I needed so I went back to Html forms.
-
-After recreating all my forms in Html, I remeber that Laravel had such a great Helper for forms that I decided to mimic it's API and borrow from it's code. It was cool and my form code got really easy to understand and very short comparing the two previous methods.
-
-Then, I just realize I could maybe use all the Laravel's Tools (input validation, routes, Query Builder, Eloquent, Migration, Queue etc.) and I got deep into it ! Hacking, reading (espacially Fabien Serny's Book on Prestashop module developpment which was an unvaluable ressource for the Prestashop beginner I was) and trying to find a way to get the best of the two worlds (honnestly the best is mostly on Laravel sides) without breaking compatibilities with PrestaShop important feature (automatic upgrades, admin object model list, friendly url, localization interface etc.).
-
 # Disclaimer
 
 Yes, Illuminato do not respects PrestaShop guidings and coding standard since it tends to mimic a Laravel application behaviour, it respects as much as possible Laravels guidings.
 
 Yes, it uses namespace and composer so it needs PHP 5.4 at least. Don't expect it to be able on the official addons store.
 
-# Installation
+## Examples
 
-## Prerequis
+[illuminatocomments](https://github.com/dedesite/illuminatocomments) : a simple comment module which demonstrates Illuminato functionnalities
+
+## Installation
+
+### Prerequis
 
 * PHP 5.4 or greater
 * Prestashop 1.6
 
-## Prestashop modification
+### Prestashop modification
 
 Since Illuminato uses namespace and also the `use` keyword, you need to remove the `eval` code in `classes/module/Module.php` in `getModulesOnDisk` function.
 
@@ -46,16 +42,16 @@ New code :
 require_once( _PS_MODULE_DIR_.$module.'/'.$module.'.php' );
 ```
 
-## Module installation
+### Module installation
 
 Illuminato is a regular Prestashop module that embeded Laravel's functions and classes.
 To install it, just download the archive and upload it on your server (or install it through Prestashop admin interface).
 
 Now, you can start playing with it !!
 
-# Create a module
+## Create a module
 
-## Files and folders
+### Files and folders
 
 Illuminato's modules do not follow Prestashop guidelines but are closer to Laravel Modules or October CMS plugin in their structure.
 
@@ -87,7 +83,7 @@ Here is what looks like a typicall Illuminato module structure :
 	illuminatocomments.php <= The module file
 ```
 
-## Declaration
+### Declaration
 
 You must create inside your module file a class that extend Illuminato's Module class (which Extends Prestashop's Module class) and create a moduleDetails function that will tell all about your module.
 
@@ -119,7 +115,7 @@ class IlluminatoComments extends Illuminato\Module
 ```Note 3 : If the displayName is not set, it will use the folder's name```
 
 
-## Installation
+### Installation
 
 The install phase is simplify cause you don't need to register to hook, if a function start with "hook" in your class Illuminato will automatically register it on install and unregister it on uninstall.
 
@@ -181,7 +177,7 @@ public function install()
 
 Note that this may change in a near futur and configuration will be setted in migrations file also.
 
-# What works
+## What works
 
 * Translation via Lang alias
 * View with blande compiler via view alias
@@ -192,7 +188,7 @@ Note that this may change in a near futur and configuration will be setted in mi
 * File
 * Input
 
-# What doesn't works or have not been tested
+## What doesn't works or have not been tested
 
 * Routes
 * Controllers
@@ -208,7 +204,7 @@ Note that this may change in a near futur and configuration will be setted in mi
 * Validator
 * And so on...
 
-# Roadmap
+## Roadmap
 
 The goal is to be closer to October CMS plugin behaviour with controller, form definitions with YAML files etc.
 
@@ -216,3 +212,11 @@ The goal is to be closer to October CMS plugin behaviour with controller, form d
 * Module's config like October CMS Settings
 * Admin settings interface simplify
 * Laravel's routes
+
+## History
+
+I found myself trying to write a PrestaShop module which uses the Prestashop's FormHelper class and complaining a lot about it. In fact, it was such a complexe tool to use that my code was more complex and long than a plain old Html form, plus you can only use it for simple cases. I found that the FormHelper is not able to generate the forms I needed so I went back to Html forms.
+
+After recreating all my forms in Html, I remeber that Laravel had such a great Helper for forms that I decided to mimic it's API and borrow from it's code. It was cool and my form code got really easy to understand and very short comparing the two previous methods.
+
+Then, I just realize I could maybe use all the Laravel's Tools (input validation, routes, Query Builder, Eloquent, Migration, Queue etc.) and I got deep into it ! Hacking, reading (espacially Fabien Serny's Book on Prestashop module developpment which was an unvaluable ressource for the Prestashop beginner I was) and trying to find a way to get the best of the two worlds (honnestly the best is mostly on Laravel sides) without breaking compatibilities with PrestaShop important feature (automatic upgrades, admin object model list, friendly url, localization interface etc.).

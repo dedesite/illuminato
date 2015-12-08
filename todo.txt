@@ -1,4 +1,7 @@
 # TODO
+- BUG : ne pas rajouter un module déjà installé dans la config
+- Ne faire les migrations qu'en mode admin et sous le backoffice
+
 
 - Trouver une solution pour ne pas avoir a modifier Module.php et le eval code.
 	=> Peut-être ne pas utiliser use dans le code du module et charger le reste via l'autoload
