@@ -4,7 +4,7 @@ class Illuminato extends Module {
 	public function __construct() {
 		$this->name = 'illuminato';
 		$this->tab = 'others';
-		$this->version = '0.1';
+		$this->version = '0.1.0';
 		$this->author = 'Andréas Livet';
 		parent::__construct();
 		$this->displayName = $this->l('Illuminato Shop');
