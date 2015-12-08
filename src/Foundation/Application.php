@@ -874,6 +874,7 @@ class Application extends Container implements ApplicationContract{
 			'db'                   => 'Illuminate\Database\DatabaseManager',
 			'translator'           => ['Illuminate\Translation\Translator', 'Symfony\Component\Translation\TranslatorInterface'],
 			'config'               => ['Illuminato\Config\IlluminatoRepository', 'Illuminate\Contracts\Config\Repository'],
+			'url'                  => ['Illuminate\Routing\UrlGenerator', 'Illuminate\Contracts\Routing\UrlGenerator'],
 			/*'auth'                 => 'Illuminate\Auth\AuthManager',
 			'auth.driver'          => ['Illuminate\Auth\Guard', 'Illuminate\Contracts\Auth\Guard'],
 			'auth.password.tokens' => 'Illuminate\Auth\Passwords\TokenRepositoryInterface',
@@ -898,7 +899,6 @@ class Application extends Container implements ApplicationContract{
 			'router'               => ['Illuminate\Routing\Router', 'Illuminate\Contracts\Routing\Registrar'],
 			'session'              => 'Illuminate\Session\SessionManager',
 			'session.store'        => ['Illuminate\Session\Store', 'Symfony\Component\HttpFoundation\Session\SessionInterface'],
-			'url'                  => ['Illuminate\Routing\UrlGenerator', 'Illuminate\Contracts\Routing\UrlGenerator'],
 			*/
 		);
 
