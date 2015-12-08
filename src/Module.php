@@ -36,6 +36,7 @@ abstract class Module extends \Module {
 		isset($details['displayName']) && $this->displayName = Lang::get($details['displayName']);
 		isset($details['description']) && $this->description = Lang::get($details['description']);
 
+		//@todo only run migration when user is admin and is in admin panel
 		$this->createMigrator();
 		if(static::isEnabled($this->name))
 			$this->runMigrations();
@@ -65,15 +66,25 @@ abstract class Module extends \Module {
 	public function addToModuleList()
 	{
 		$installed_modules = static::getInstalledModules();
-		$installed_modules []= ['name' => $this->name, 'namespace' => $this->namespace];
-		static::setInstalledModules($installed_modules);
+		$new_module = ['name' => $this->name, 'namespace' => $this->namespace];
+
+		//Check if the module is already on the list
+		if(array_search($new_module, $installed_modules) === FALSE)
+		{
+			$installed_modules []= ['name' => $this->name, 'namespace' => $this->namespace];
+			static::setInstalledModules($installed_modules);
+		}
 	}
 
 	public function removeFromModuleList()
 	{
 		$installed_modules = static::getInstalledModules();
-		$modules = array_diff($installed_modules, ['name' => $this->name, 'namespace' => $this->namespace]);
-		static::setInstalledModules($modules);
+		$offset = array_search(['name' => $this->name, 'namespace' => $this->namespace], $installed_modules);
+		if($offset !== FALSE)
+		{
+			array_splice($installed_modules, $offset, 1);
+			static::setInstalledModules($installed_modules);
+		}
 	}
 
 	public function install()
@@ -115,7 +126,7 @@ abstract class Module extends \Module {
 		if(!$repo->repositoryExists())
 			$repo->createRepository();
 		$this->migrator = new Migrator($repo, $app['db'], $app['files']);
-		$this->migrationPath = _PS_MODULE_DIR_.$this->name.'/migrations';
+		$this->migrationPath = _PS_MODULE_DIR_.$this->name.'/updates';
 	}
 
 	protected function runMigrations()
