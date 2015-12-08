@@ -25,7 +25,7 @@ class Conf
 		}
 		else
 		{
-			return \Configuration::get($this->prefix.$key);
+			return \Configuration::get($this->prefix.$keys);
 		}
 	}
 
