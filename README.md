@@ -1,7 +1,7 @@
-IlluminatoShop
+Illuminato
 ==============
 
-IlluminatoShop is a set of tools that allows Prestashop Module developpers to use Laravel 5 API inside PrestaShop.
+Illuminato is a set of tools that allows Prestashop Module developpers to use Laravel 5 API inside PrestaShop.
 
 For now, it is a nasty hack, maybe it will evolve into something cleaner.
 
@@ -15,7 +15,7 @@ Then, I just realize I could maybe use all the Laravel's Tools (input validation
 
 # Disclaimer
 
-Yes, IlluminatoShop do not respects PrestaShop guidings and coding standard since it tends to mimic a Laravel application behaviour, it respects as much as possible Laravels guidings.
+Yes, Illuminato do not respects PrestaShop guidings and coding standard since it tends to mimic a Laravel application behaviour, it respects as much as possible Laravels guidings.
 
 Yes, it uses namespace and composer so it needs PHP 5.4 at least. Don't expect it to be able on the official addons store.
 
@@ -28,7 +28,7 @@ Yes, it uses namespace and composer so it needs PHP 5.4 at least. Don't expect i
 
 ## Prestashop modification
 
-Since IlluminatoShop uses namespace and also the `use` keyword, you need to remove the `eval` code in `classes/module/Module.php` in `getModulesOnDisk` function.
+Since Illuminato uses namespace and also the `use` keyword, you need to remove the `eval` code in `classes/module/Module.php` in `getModulesOnDisk` function.
 
 Warning : This means that if one of your module got an error, your Prestashop installation won't work at all !
 
@@ -48,7 +48,7 @@ require_once( _PS_MODULE_DIR_.$module.'/'.$module.'.php' );
 
 ## Module installation
 
-IlluminatoShop is a regular Prestashop module that embeded Laravel's functions and classes.
+Illuminato is a regular Prestashop module that embeded Laravel's functions and classes.
 To install it, just download the archive and upload it on your server (or install it through Prestashop admin interface).
 
 Now, you can start playing with it !!
