@@ -7,7 +7,7 @@ class Illuminato extends Module {
 		$this->version = '0.1.0';
 		$this->author = 'Andréas Livet';
 		parent::__construct();
-		$this->displayName = $this->l('Illuminato Shop');
+		$this->displayName = $this->l('Illuminato');
 		$this->description = $this->l('Provide a set of tools to help developping Prestashop modules within Laravel Philosophy.');
 	}
 
