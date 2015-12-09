@@ -5,15 +5,15 @@ Illuminato is a set of tools that allows Prestashop Module developpers to use La
 
 For now, it is a nasty hack, maybe it will evolve into something cleaner.
 
-# Disclaimer
+## Disclaimer
 
-Yes, Illuminato do not respects PrestaShop guidings and coding standard since it tends to mimic a Laravel application behaviour, it respects as much as possible Laravels guidings.
+Yes, Illuminato does not respect PrestaShop's guidings and coding standards since it tends to mimic a Laravel application behaviour, it respects as much as possible Laravel's guidings.
 
-Yes, it uses namespace and composer so it needs PHP 5.4 at least. Don't expect it to be able on the official addons store.
+Yes, it uses namespaces and composer so it needs PHP 5.4 at least. Don't expect it to be available on the official addons store.
 
 ## Examples
 
-[illuminatocomments](https://github.com/dedesite/illuminatocomments) : a simple comment module which demonstrates Illuminato functionnalities
+[illuminatocomments](https://github.com/dedesite/illuminatocomments) : a simple comments module which demonstrates Illuminato's functionnalities
 
 ## Installation
 
@@ -45,7 +45,7 @@ require_once( _PS_MODULE_DIR_.$module.'/'.$module.'.php' );
 ### Module installation
 
 Illuminato is a regular Prestashop module that embeded Laravel's functions and classes.
-To install it, just download the archive and upload it on your server (or install it through Prestashop admin interface).
+To install it, just download [the archive illuminato.zip](https://github.com/dedesite/illuminato/releases/latest) and install it like any other modules.
 
 Now, you can start playing with it !!
 
@@ -57,7 +57,7 @@ Illuminato's modules do not follow Prestashop guidelines but are closer to Larav
 
 What remains is the module file at the root of the folder which should have the same name as the module folder.
 
-Here is what looks like a typicall Illuminato module structure :
+Here is what looks like a typical Illuminato module structure :
 
 ```
 /illuminatocomments
@@ -111,15 +111,17 @@ class IlluminatoComments extends Illuminato\Module
 ```
 
 ```Note : For now, Illuminato is only compatible with PrestaShop 1.6 and use Twitter bootstrap as default.```
+
 ```Note 2 : You don't have to precise the module name, Illuminato will take the folder's name and if it's not the same as the module file name's, it will throw an error.```
+
 ```Note 3 : If the displayName is not set, it will use the folder's name```
 
 
 ### Installation
 
-The install phase is simplify cause you don't need to register to hook, if a function start with "hook" in your class Illuminato will automatically register it on install and unregister it on uninstall.
+The install phase is simplified cause you don't need to register to hook, if a function starts with "hook" in your class Illuminato will automatically register it on install and unregister it on uninstall.
 
-With migrations, all table creation process is automatic, you just have to put your migrations files into the updates folder and Illuminato will apply them every time the admin goes into admin panel (if there is a new one).
+With migrations, all the table creation process is automatic, you just have to put your migration files into the `updates` folder and Illuminato will apply them every time the admin goes into admin panel (if there is a new one).
 
 Here is an example of a migration file :
 
@@ -160,7 +162,7 @@ class CreateCommentsTable extends Migration {
 }
 ```
 
-You may still need to use an install function to create configuration variable like this :
+You may still need to use an install function to create configuration variables like this :
 
 ```php
 public function install()
@@ -175,18 +177,18 @@ public function install()
 }
 ```
 
-Note that this may change in a near futur and configuration will be setted in migrations file also.
+Note that this may change in a near futur and configuration will be setted in migration files also.
 
 ## What works
 
-* Translation via Lang alias
-* View with blande compiler via view alias
+* Translation via Lang::
+* View with blade compiler via View::
 * Eloquant Model
 * Migrations
-* static config file via Config
+* static config file via Config::
 * Html and Form builder via Html:: and Form::
-* File
-* Input
+* File::
+* Input::
 
 ## What doesn't works or have not been tested
 
@@ -206,7 +208,7 @@ Note that this may change in a near futur and configuration will be setted in mi
 
 ## Roadmap
 
-The goal is to be closer to October CMS plugin behaviour with controller, form definitions with YAML files etc.
+The goal is to be closer to October CMS plugin behaviour with controller, forms definition with YAML files etc.
 
 * AdminController like October CMS list
 * Module's config like October CMS Settings
@@ -215,8 +217,8 @@ The goal is to be closer to October CMS plugin behaviour with controller, form d
 
 ## History
 
-I found myself trying to write a PrestaShop module which uses the Prestashop's FormHelper class and complaining a lot about it. In fact, it was such a complexe tool to use that my code was more complex and long than a plain old Html form, plus you can only use it for simple cases. I found that the FormHelper is not able to generate the forms I needed so I went back to Html forms.
+I found myself trying to write a PrestaShop module which uses the Prestashop's FormHelper class and complaining a lot about it. In fact, it was such a complex tool to use that my code was more complex and long than a plain old Html form, plus you can only use it for simple cases. I found that the FormHelper is not able to generate the forms I needed so I went back to Html forms.
 
-After recreating all my forms in Html, I remeber that Laravel had such a great Helper for forms that I decided to mimic it's API and borrow from it's code. It was cool and my form code got really easy to understand and very short comparing the two previous methods.
+After recreating all my forms in Html, I remember that Laravel had such a great Helper for forms then I decided to mimic it's API and borrow from it's code. It was cool and my form code got really easier to understand and very short comparing to the two previous methods.
 
-Then, I just realize I could maybe use all the Laravel's Tools (input validation, routes, Query Builder, Eloquent, Migration, Queue etc.) and I got deep into it ! Hacking, reading (espacially Fabien Serny's Book on Prestashop module developpment which was an unvaluable ressource for the Prestashop beginner I was) and trying to find a way to get the best of the two worlds (honnestly the best is mostly on Laravel sides) without breaking compatibilities with PrestaShop important feature (automatic upgrades, admin object model list, friendly url, localization interface etc.).
+Then, I just realized I could maybe use all the Laravel's Tools (input validation, routes, Query Builder, Eloquent, Migration, Queue etc.) and I got deep into it ! Hacking, reading (espacially Fabien Serny's Book on Prestashop module developpment which was an unvaluable ressource for the Prestashop beginner I was) and trying to find a way to get the best of the two worlds (honnestly the best is mostly on Laravel's side) without breaking compatibilities with PrestaShop important features (automatic upgrades, admin object model list, friendly url, localization interface etc.).
