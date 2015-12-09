@@ -36,10 +36,13 @@ abstract class Module extends \Module {
 		isset($details['displayName']) && $this->displayName = Lang::get($details['displayName']);
 		isset($details['description']) && $this->description = Lang::get($details['description']);
 
-		//@todo only run migration when user is admin and is in admin panel
-		$this->createMigrator();
-		if(static::isEnabled($this->name))
-			$this->runMigrations();
+		//Only run migration when user is admin and is in admin panel
+		if ($this->context->employee && $this->context->employee->isSuperAdmin())
+		{
+			$this->createMigrator();
+			if(static::isEnabled($this->name))
+				$this->runMigrations();
+		}
 
 		//Convenient Prestashop conf with prefix
 		$this->conf = new Conf(strtoupper(get_class($this)));
